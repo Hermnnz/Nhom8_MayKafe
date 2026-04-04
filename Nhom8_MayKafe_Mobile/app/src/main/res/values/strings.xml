@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MayKafe POS</string>
+    <string name="nav_sales">Bán hàng</string>
+    <string name="nav_invoices">Hóa đơn</string>
+    <string name="nav_menu">Thực đơn</string>
+    <string name="nav_reports">Báo cáo</string>
+    <string name="nav_account">Tài khoản</string>
+    <string name="login">Đăng nhập</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="cancel">Hủy</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="save">Lưu</string>
+    <string name="search_hint">Tìm món...</string>
+    <string name="currency_suffix">đ</string>
+    <string name="role_admin">Quản lý</string>
+    <string name="role_staff">Nhân viên</string>
+</resources>

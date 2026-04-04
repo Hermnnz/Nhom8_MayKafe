@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="coffee_950">#2C1810</color>
+    <color name="coffee_900">#3D1F0F</color>
+    <color name="coffee_800">#5A3423</color>
+    <color name="coffee_700">#6B3F2A</color>
+    <color name="coffee_500">#8B6355</color>
+    <color name="coffee_400">#C8956C</color>
+    <color name="coffee_300">#D7B59D</color>
+    <color name="coffee_200">#E8D5C4</color>
+    <color name="coffee_100">#F5EDE5</color>
+    <color name="coffee_50">#FFF8F0</color>
+    <color name="accent_gold">#F5A623</color>
+    <color name="success">#2E7D32</color>
+    <color name="success_bg">#E8F5E9</color>
+    <color name="danger">#D64545</color>
+    <color name="danger_bg">#FDECEC</color>
+    <color name="dialog_confirm_red">#FF4D4F</color>
+    <color name="dialog_icon_bg">#FFF0F1</color>
+    <color name="warning_bg">#FFF6E4</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="bottom_nav_active">#6B3F2A</color>
+    <color name="bottom_nav_inactive">#8B6355</color>
+    <color name="bottom_nav_disabled">#D4C4BC</color>
+    <color name="badge_text">#FFFFFF</color>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_horizontal_padding">16dp</dimen>
+    <dimen name="screen_top_padding">16dp</dimen>
+    <dimen name="card_radius">20dp</dimen>
+    <dimen name="chip_radius">24dp</dimen>
+    <dimen name="button_radius">18dp</dimen>
+    <dimen name="bottom_nav_height">68dp</dimen>
+    <dimen name="thumbnail_radius">16dp</dimen>
+    <dimen name="cart_badge_size">18dp</dimen>
+</resources>

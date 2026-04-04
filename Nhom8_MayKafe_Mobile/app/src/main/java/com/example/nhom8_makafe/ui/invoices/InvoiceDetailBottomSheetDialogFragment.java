@@ -1,0 +1,159 @@
+package com.example.nhom8_makafe.ui.invoices;
+
+import android.app.Dialog;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.example.nhom8_makafe.R;
+import com.example.nhom8_makafe.adapter.InvoiceDetailItemAdapter;
+import com.example.nhom8_makafe.data.api.ApiCallback;
+import com.example.nhom8_makafe.data.api.ApiRepository;
+import com.example.nhom8_makafe.databinding.BottomSheetInvoiceDetailBinding;
+import com.example.nhom8_makafe.model.Invoice;
+import com.example.nhom8_makafe.model.OrderStatus;
+import com.example.nhom8_makafe.util.FeedbackSnackbar;
+import com.example.nhom8_makafe.util.FormatUtils;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+
+public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFragment {
+    private static final String ARG_INVOICE_ID = "invoice_id";
+
+    private BottomSheetInvoiceDetailBinding binding;
+    private final ApiRepository apiRepository = ApiRepository.getInstance();
+    private InvoiceDetailItemAdapter adapter;
+    private Invoice currentInvoice;
+
+    public static InvoiceDetailBottomSheetDialogFragment newInstance(String invoiceId) {
+        InvoiceDetailBottomSheetDialogFragment fragment = new InvoiceDetailBottomSheetDialogFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_INVOICE_ID, invoiceId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = BottomSheetInvoiceDetailBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
+        dialog.setOnShowListener(dialogInterface -> {
+            BottomSheetDialog bottomSheetDialog = (BottomSheetDialog) dialogInterface;
+            View bottomSheet = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                bottomSheet.setBackgroundResource(android.R.color.transparent);
+                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+                behavior.setSkipCollapsed(true);
+                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        });
+        return dialog;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        adapter = new InvoiceDetailItemAdapter();
+        binding.recyclerDetailItems.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.recyclerDetailItems.setAdapter(adapter);
+        binding.buttonClose.setOnClickListener(v -> dismissAllowingStateLoss());
+        binding.buttonPrintInvoice.setOnClickListener(v -> {
+            if (currentInvoice != null && binding.getRoot() instanceof FrameLayout) {
+                FeedbackSnackbar.showPrintingOverlay((FrameLayout) binding.getRoot(), currentInvoice.getId());
+            }
+        });
+        loadInvoice();
+    }
+
+    private void loadInvoice() {
+        String invoiceId = getArguments() == null ? null : getArguments().getString(ARG_INVOICE_ID);
+        if (invoiceId == null || invoiceId.trim().isEmpty()) {
+            dismissAllowingStateLoss();
+            return;
+        }
+        apiRepository.fetchInvoiceByCode(invoiceId, new ApiCallback<Invoice>() {
+            @Override
+            public void onSuccess(Invoice data) {
+                if (!isAdded() || binding == null) {
+                    return;
+                }
+                currentInvoice = data;
+                bindInvoice(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded()) {
+                    return;
+                }
+                dismissAllowingStateLoss();
+            }
+        });
+    }
+
+    private void bindInvoice(Invoice invoice) {
+        binding.textInvoiceTitle.setText("H\u00f3a \u0111\u01a1n " + invoice.getId());
+        binding.textInvoiceMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+        bindStatus(invoice.getStatus());
+        adapter.submitList(invoice.getItems());
+        binding.textTotalValue.setText(FormatUtils.formatCurrency(invoice.getTotal()));
+        if (invoice.getPaymentMethodLabel() == null || invoice.getPaymentMethodLabel().isEmpty()) {
+            binding.layoutPaymentInfo.setVisibility(View.GONE);
+        } else {
+            binding.layoutPaymentInfo.setVisibility(View.VISIBLE);
+            binding.textPaymentInfo.setText("Thanh to\u00e1n b\u1eb1ng " + invoice.getPaymentMethodLabel());
+        }
+    }
+
+    private void bindStatus(OrderStatus status) {
+        if (status == OrderStatus.CANCELLED) {
+            binding.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_cancelled);
+            binding.imageStatus.setImageResource(R.drawable.ic_stat_cancelled);
+            binding.imageStatus.setColorFilter(requireContext().getColor(R.color.danger));
+            binding.textStatus.setTextColor(requireContext().getColor(R.color.danger));
+            binding.textStatus.setText("\u0110\u00e3 h\u1ee7y");
+            binding.layoutPaymentInfo.setBackgroundResource(R.drawable.bg_status_cancelled);
+            binding.imagePayment.setImageResource(R.drawable.ic_stat_cancelled);
+            binding.imagePayment.setColorFilter(requireContext().getColor(R.color.danger));
+            binding.textPaymentInfo.setTextColor(requireContext().getColor(R.color.danger));
+        } else {
+            binding.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_paid);
+            binding.imageStatus.setImageResource(R.drawable.ic_stat_paid);
+            binding.imageStatus.setColorFilter(requireContext().getColor(R.color.success));
+            binding.textStatus.setTextColor(requireContext().getColor(R.color.success));
+            binding.textStatus.setText("\u0110\u00e3 thanh to\u00e1n");
+            binding.layoutPaymentInfo.setBackgroundResource(R.drawable.bg_success_pill);
+            binding.imagePayment.setImageResource(R.drawable.ic_stat_paid);
+            binding.imagePayment.setColorFilter(requireContext().getColor(R.color.success));
+            binding.textPaymentInfo.setTextColor(requireContext().getColor(R.color.success));
+        }
+    }
+
+    private String formatDisplayDate(String isoDate) {
+        String[] parts = isoDate.split("-");
+        if (parts.length != 3) {
+            return isoDate;
+        }
+        return parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+}

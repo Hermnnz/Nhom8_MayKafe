@@ -1,0 +1,15 @@
+<resources>
+    <style name="Theme.Nhom8_MaKafe" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/coffee_700</item>
+        <item name="colorPrimaryVariant">@color/coffee_900</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_gold</item>
+        <item name="colorSecondaryVariant">@color/coffee_400</item>
+        <item name="colorOnSecondary">@color/coffee_950</item>
+        <item name="colorSurface">@color/coffee_50</item>
+        <item name="colorOnSurface">@color/coffee_950</item>
+        <item name="android:colorBackground">@color/coffee_50</item>
+        <item name="android:statusBarColor">@color/coffee_900</item>
+        <item name="android:navigationBarColor">@color/coffee_900</item>
+    </style>
+</resources>

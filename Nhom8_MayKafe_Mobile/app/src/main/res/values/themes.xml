@@ -1,0 +1,37 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.Nhom8_MaKafe" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/coffee_700</item>
+        <item name="colorPrimaryVariant">@color/coffee_900</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent_gold</item>
+        <item name="colorSecondaryVariant">@color/coffee_400</item>
+        <item name="colorOnSecondary">@color/coffee_950</item>
+        <item name="colorSurface">@color/coffee_50</item>
+        <item name="colorOnSurface">@color/coffee_950</item>
+        <item name="android:colorBackground">@color/coffee_50</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowBackground">@color/coffee_50</item>
+        <item name="materialButtonStyle">@style/Widget.MayKafe.Button</item>
+        <item name="textInputStyle">@style/Widget.MayKafe.TextInputLayout</item>
+    </style>
+
+    <style name="Widget.MayKafe.Button" parent="Widget.MaterialComponents.Button">
+        <item name="cornerRadius">18dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <style name="Widget.MayKafe.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxCornerRadiusTopStart">18dp</item>
+        <item name="boxCornerRadiusTopEnd">18dp</item>
+        <item name="boxCornerRadiusBottomStart">18dp</item>
+        <item name="boxCornerRadiusBottomEnd">18dp</item>
+        <item name="boxStrokeColor">@color/coffee_700</item>
+        <item name="hintTextColor">@color/coffee_500</item>
+        <item name="placeholderTextColor">@color/coffee_400</item>
+    </style>
+</resources>

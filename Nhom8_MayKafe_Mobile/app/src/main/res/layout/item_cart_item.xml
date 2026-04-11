@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="10dp"
-    android:paddingBottom="10dp">
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,13 +13,36 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/text_thumbnail"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            app:cardBackgroundColor="@color/coffee_100"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/coffee_200"
+            app:strokeWidth="1dp">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/image_product"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Anh mon"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:id="@+id/text_thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -46,29 +70,33 @@
 
         <ImageButton
             android:id="@+id/button_note"
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:background="@drawable/bg_outline_pill"
-            android:contentDescription="Ghi chú"
-            android:src="@android:drawable/ic_menu_edit" />
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="Ghi chu"
+            android:padding="4dp"
+            android:src="@drawable/ic_note_outline"
+            android:tint="@color/coffee_400" />
 
         <LinearLayout
-            android:layout_width="96dp"
+            android:layout_width="86dp"
             android:layout_height="36dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:background="@drawable/bg_outline_pill"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingLeft="6dp"
-            android:paddingRight="6dp">
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp">
 
-            <ImageButton
+            <TextView
                 android:id="@+id/button_minus"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Giảm"
-                android:src="@android:drawable/ic_media_previous" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:gravity="center"
+                android:text="-"
+                android:textColor="@color/coffee_700"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/text_quantity"
@@ -79,20 +107,22 @@
                 android:textColor="@color/coffee_950"
                 android:textStyle="bold" />
 
-            <ImageButton
+            <TextView
                 android:id="@+id/button_plus"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="Tăng"
-                android:src="@android:drawable/ic_input_add" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:gravity="center"
+                android:text="+"
+                android:textColor="@color/coffee_700"
+                android:textSize="16sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/text_total"
-            android:layout_width="72dp"
+            android:layout_width="84dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="12dp"
             android:gravity="end"
             android:textColor="@color/coffee_700"
             android:textSize="14sp"
@@ -104,8 +134,8 @@
         style="@style/Widget.MayKafe.TextInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="Ghi chú cho món này"
+        android:layout_marginTop="10dp"
+        android:hint="Ghi ch&#250; cho m&#243;n n&#224;y"
         android:visibility="gone">
 
         <com.google.android.material.textfield.TextInputEditText

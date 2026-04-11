@@ -90,8 +90,8 @@ public class ReportsFragment extends Fragment {
         }
         binding.textAvatar.setText(user.getAvatarInitials());
         binding.textAvatar.setBackground(UiUtils.roundedBackground(user.getAvatarColorHex(), dp(22)));
-        UiUtils.bindThumbnail(binding.textFooterAvatar, binding.textFooterAvatar, user.getAvatarInitials(), user.getAvatarColorHex());
         binding.textUserRole.setText(user.getDisplayName() + " \u00b7 " + UiUtils.roleLabel(user.getRole()));
+        UiUtils.bindThumbnail(binding.textFooterAvatar, binding.textFooterAvatar, user.getAvatarInitials(), user.getAvatarColorHex());
         binding.textFooterName.setText(user.getDisplayName());
         binding.textFooterRole.setText(UiUtils.roleLabel(user.getRole()));
     }

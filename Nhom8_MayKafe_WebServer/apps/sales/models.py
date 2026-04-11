@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 
 from apps.catalog.models import Product
 
@@ -80,6 +80,7 @@ class OrderItem(models.Model):
     unit_price = models.FloatField(db_column="DonGia")
     quantity = models.PositiveIntegerField(db_column="SoLuong")
     line_total = models.FloatField(db_column="ThanhTien")
+    note = models.CharField(db_column="GhiChu", max_length=255, blank=True, null=True)
 
     class Meta:
         db_table = "maycafe_ct_banhang"
@@ -93,6 +94,57 @@ class OrderItem(models.Model):
     def __str__(self) -> str:
         return f"{self.order.public_code} - {self.product.name}"
 
-    @property
-    def note(self) -> str:
-        return ""
+
+class OrderPayment(models.Model):
+    METHOD_CASH = "cash"
+    METHOD_BANK_TRANSFER = "bank_transfer"
+    METHOD_CHOICES = (
+        (METHOD_CASH, "Cash"),
+        (METHOD_BANK_TRANSFER, "Bank transfer"),
+    )
+
+    STATUS_PENDING = "pending"
+    STATUS_PAID = "paid"
+    STATUS_FAILED = "failed"
+    STATUS_EXPIRED = "expired"
+    STATUS_WAITING_VERIFY = "waiting_verify"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Pending"),
+        (STATUS_PAID, "Paid"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_EXPIRED, "Expired"),
+        (STATUS_WAITING_VERIFY, "Waiting verify"),
+    )
+
+    id = models.BigAutoField(primary_key=True)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="payments",
+        db_column="ID_HD_id",
+    )
+    method = models.CharField(max_length=32, db_column="PhuongThuc", choices=METHOD_CHOICES)
+    amount = models.PositiveIntegerField(db_column="SoTien", default=0)
+    bank_name = models.CharField(max_length=100, db_column="TenNganHang", blank=True, default="")
+    account_number = models.CharField(max_length=50, db_column="SoTaiKhoan", blank=True, default="")
+    account_name = models.CharField(max_length=150, db_column="TenTaiKhoan", blank=True, default="")
+    transfer_content = models.CharField(max_length=120, db_column="NoiDungChuyenKhoan", blank=True, default="")
+    qr_content = models.TextField(db_column="DuLieuQr", blank=True, default="")
+    status = models.CharField(max_length=32, db_column="TrangThaiThanhToan", choices=STATUS_CHOICES, default=STATUS_PENDING)
+    expires_at = models.DateTimeField(db_column="HetHanLuc", null=True, blank=True)
+    paid_at = models.DateTimeField(db_column="DaThanhToanLuc", null=True, blank=True)
+    cash_received = models.FloatField(db_column="TienKhachDua", default=0)
+    change_amount = models.FloatField(db_column="TienTraLai", default=0)
+    note = models.CharField(max_length=255, db_column="GhiChu", blank=True, null=True)
+    raw_payload = models.TextField(db_column="DuLieuGoc", blank=True, default="")
+    created_at = models.DateTimeField(db_column="NgayTao", auto_now_add=True)
+    updated_at = models.DateTimeField(db_column="NgayCapNhat", auto_now=True)
+
+    class Meta:
+        db_table = "maycafe_thanhtoan"
+        ordering = ["-created_at", "-id"]
+        verbose_name = "Order payment"
+        verbose_name_plural = "Order payments"
+
+    def __str__(self) -> str:
+        return f"{self.order.public_code} - {self.method}"

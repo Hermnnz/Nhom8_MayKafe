@@ -14,6 +14,7 @@ public final class ImageLoader {
         Glide.with(imageView)
                 .load(imageUrl)
                 .placeholder(R.drawable.bg_muted_panel)
+                .fallback(R.drawable.bg_muted_panel)
                 .error(R.drawable.bg_muted_panel)
                 .centerCrop()
                 .transition(DrawableTransitionOptions.withCrossFade())

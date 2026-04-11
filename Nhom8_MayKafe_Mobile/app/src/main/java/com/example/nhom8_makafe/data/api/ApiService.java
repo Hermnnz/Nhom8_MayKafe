@@ -87,6 +87,43 @@ public interface ApiService {
             @Body CheckoutRequest request
     );
 
+    @POST("orders/payment/qr/")
+    Call<ApiEnvelope<PaymentDto>> createQrPayment(
+            @Header("Authorization") String authorization,
+            @Body PaymentInitRequest request
+    );
+
+    @POST("orders/{orderId}/payment/qr/")
+    Call<ApiEnvelope<PaymentDto>> refreshQrPayment(
+            @Header("Authorization") String authorization,
+            @Path("orderId") int orderId
+    );
+
+    @POST("orders/payment/cash/confirm/")
+    Call<ApiEnvelope<OrderDto>> confirmCashPayment(
+            @Header("Authorization") String authorization,
+            @Body CashPaymentRequest request
+    );
+
+    @POST("orders/{orderId}/payment/cash/confirm/")
+    Call<ApiEnvelope<OrderDto>> confirmCashPaymentForOrder(
+            @Header("Authorization") String authorization,
+            @Path("orderId") int orderId,
+            @Body CashPaymentConfirmRequest request
+    );
+
+    @POST("orders/payments/{paymentId}/confirm/")
+    Call<ApiEnvelope<OrderDto>> confirmBankTransfer(
+            @Header("Authorization") String authorization,
+            @Path("paymentId") int paymentId
+    );
+
+    @GET("orders/payments/{paymentId}/status/")
+    Call<ApiEnvelope<PaymentDto>> getPaymentStatus(
+            @Header("Authorization") String authorization,
+            @Path("paymentId") int paymentId
+    );
+
     @GET("reports/dashboard/")
     Call<ApiEnvelope<DashboardDto>> getDashboard(
             @Header("Authorization") String authorization,

@@ -103,6 +103,7 @@ public class SessionManager {
                 product.getCategory(),
                 product.getAssetLabel(),
                 product.getAccentColorHex(),
+                product.getImageUrl(),
                 1
         ));
         notifyCartChanged();

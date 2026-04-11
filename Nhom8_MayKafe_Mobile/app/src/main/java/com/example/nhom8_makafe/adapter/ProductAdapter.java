@@ -3,7 +3,7 @@ package com.example.nhom8_makafe.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.model.Product;
 import com.example.nhom8_makafe.util.FormatUtils;
+import com.example.nhom8_makafe.util.ImageLoader;
 import com.example.nhom8_makafe.util.UiUtils;
 import com.google.android.material.button.MaterialButton;
 
@@ -62,7 +63,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         Product product = items.get(position);
         int quantity = quantityMap.containsKey(product.getId()) ? quantityMap.get(product.getId()) : 0;
 
-        UiUtils.bindThumbnail(holder.layoutThumbnail, holder.textThumbnail, product.getAssetLabel(), product.getAccentColorHex());
+        bindProductImage(holder, product);
         holder.textProductName.setText(product.getName());
         holder.textProductCategory.setText(product.getCategory());
         holder.textProductPrice.setText(FormatUtils.formatCurrency(product.getPrice()));
@@ -77,6 +78,24 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         holder.buttonMinus.setOnClickListener(v -> listener.onDecrease(product));
     }
 
+    private void bindProductImage(@NonNull ViewHolder holder, @NonNull Product product) {
+        String imageUrl = product.getImageUrl();
+        boolean hasImage = imageUrl != null && !imageUrl.trim().isEmpty();
+
+        if (hasImage) {
+            holder.imageProduct.setVisibility(View.VISIBLE);
+            holder.textThumbnail.setVisibility(View.GONE);
+            holder.layoutThumbnail.setBackground(null);
+            ImageLoader.load(holder.imageProduct, imageUrl);
+            return;
+        }
+
+        holder.imageProduct.setImageDrawable(null);
+        holder.imageProduct.setVisibility(View.GONE);
+        holder.textThumbnail.setVisibility(View.VISIBLE);
+        UiUtils.bindThumbnail(holder.layoutThumbnail, holder.textThumbnail, product.getAssetLabel(), product.getAccentColorHex());
+    }
+
     @Override
     public int getItemCount() {
         return items.size();
@@ -84,6 +103,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         private final View layoutThumbnail;
+        private final ImageView imageProduct;
         private final TextView textThumbnail;
         private final TextView textQtyBadge;
         private final TextView textProductName;
@@ -92,12 +112,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         private final MaterialButton buttonAdd;
         private final LinearLayout layoutQuantity;
         private final TextView textQuantity;
-        private final ImageButton buttonMinus;
-        private final ImageButton buttonPlus;
+        private final TextView buttonMinus;
+        private final TextView buttonPlus;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             layoutThumbnail = itemView.findViewById(R.id.layout_thumbnail);
+            imageProduct = itemView.findViewById(R.id.image_product);
             textThumbnail = itemView.findViewById(R.id.text_thumbnail);
             textQtyBadge = itemView.findViewById(R.id.text_qty_badge);
             textProductName = itemView.findViewById(R.id.text_product_name);

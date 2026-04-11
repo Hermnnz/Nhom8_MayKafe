@@ -122,6 +122,42 @@ class CheckoutRequest {
     List<CheckoutItemRequest> items;
 }
 
+class PaymentInitRequest {
+    String tableNumber;
+    int discountPercent;
+    List<CheckoutItemRequest> items;
+}
+
+class CashPaymentRequest {
+    String tableNumber;
+    int discountPercent;
+    int cashReceived;
+    List<CheckoutItemRequest> items;
+}
+
+class CashPaymentConfirmRequest {
+    int cashReceived;
+
+    CashPaymentConfirmRequest(int cashReceived) {
+        this.cashReceived = cashReceived;
+    }
+}
+
+class PaymentDto {
+    int paymentId;
+    int orderId;
+    String orderCode;
+    int amount;
+    String bankName;
+    String accountNumber;
+    String accountName;
+    String transferContent;
+    String qrContent;
+    String status;
+    String expiresAt;
+    String paidAt;
+}
+
 class DashboardDto {
     String period;
     DashboardSummaryDto summary;

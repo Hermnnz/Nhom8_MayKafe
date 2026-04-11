@@ -34,12 +34,21 @@ public class InvoiceLineItemAdapter extends RecyclerView.Adapter<InvoiceLineItem
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         OrderItem item = items.get(position);
-        String lineName = item.getName() + " × " + item.getQuantity();
+        String lineName = item.getName() + " \u00d7 " + item.getQuantity();
         if (item.getNote() != null && !item.getNote().isEmpty()) {
             lineName += " (" + item.getNote() + ")";
         }
         holder.textLineName.setText(lineName);
-        holder.textLineTotal.setText(FormatUtils.formatCurrency(item.getLineTotal()));
+        holder.textLineTotal.setText(formatCurrency(item.getLineTotal()));
+    }
+
+    private String formatCurrency(int amount) {
+        String formatted = FormatUtils.formatCurrency(amount).replace("\u0111", "\u20ab");
+        int symbolIndex = formatted.lastIndexOf('\u20ab');
+        if (symbolIndex < 0) {
+            return formatted;
+        }
+        return formatted.substring(0, symbolIndex).trim() + " \u20ab";
     }
 
     @Override

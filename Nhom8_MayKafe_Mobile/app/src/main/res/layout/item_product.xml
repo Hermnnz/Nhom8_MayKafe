@@ -18,25 +18,35 @@
         <FrameLayout
             android:id="@+id/layout_thumbnail"
             android:layout_width="match_parent"
-            android:layout_height="110dp"
-            android:padding="12dp">
+            android:layout_height="110dp">
+
+            <ImageView
+                android:id="@+id/image_product"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Anh mon"
+                android:scaleType="centerCrop" />
 
             <TextView
                 android:id="@+id/text_thumbnail"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
+                android:layout_gravity="center"
                 android:background="@drawable/bg_outline_pill"
                 android:gravity="center"
                 android:text="CF"
                 android:textColor="@color/white"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/text_qty_badge"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="top|end"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
                 android:background="@drawable/bg_cart_badge"
                 android:gravity="center"
                 android:textColor="@color/white"
@@ -85,8 +95,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/bg_muted_panel"
-                android:text="Thêm"
+                android:background="@drawable/bg_sales_add_button"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="0dp"
+                app:backgroundTint="@null"
+                android:text="+ Th&#234;m"
+                android:textAllCaps="false"
                 android:textColor="@color/coffee_700"
                 android:textSize="12sp"
                 android:textStyle="bold" />
@@ -103,14 +118,15 @@
                 android:paddingRight="10dp"
                 android:visibility="gone">
 
-                <ImageButton
+                <TextView
                     android:id="@+id/button_minus"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Giảm"
-                    android:src="@android:drawable/ic_media_previous"
-                    app:tint="@color/white" />
+                    android:gravity="center"
+                    android:text="-"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/text_quantity"
@@ -122,14 +138,15 @@
                     android:textSize="15sp"
                     android:textStyle="bold" />
 
-                <ImageButton
+                <TextView
                     android:id="@+id/button_plus"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="Tăng"
-                    android:src="@android:drawable/ic_input_add"
-                    app:tint="@color/white" />
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

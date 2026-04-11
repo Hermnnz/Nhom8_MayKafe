@@ -1,5 +1,5 @@
-﻿from pathlib import Path
-from urllib.parse import urlparse
+from pathlib import Path
+from urllib.parse import quote, unquote, urlparse
 from uuid import uuid4
 
 from django.conf import settings
@@ -19,7 +19,7 @@ def normalize_image_reference(value: str | None) -> str | None:
     if value is None:
         return None
 
-    normalized = value.strip()
+    normalized = unquote(value.strip())
     if not normalized:
         return None
 
@@ -27,24 +27,27 @@ def normalize_image_reference(value: str | None) -> str | None:
 
     if is_absolute_url(normalized):
         parsed = urlparse(normalized)
-        if parsed.path.startswith(media_prefix):
-            return parsed.path[len(media_prefix):].lstrip("/")
+        parsed_path = unquote(parsed.path)
+        if parsed_path.startswith(media_prefix):
+            return parsed_path[len(media_prefix):].lstrip("/")
         return normalized
 
     if normalized.startswith(media_prefix):
-        return normalized[len(media_prefix):].lstrip("/")
+        return unquote(normalized[len(media_prefix):].lstrip("/"))
 
     if normalized.startswith(settings.MEDIA_URL):
-        return normalized[len(settings.MEDIA_URL) :].lstrip("/")
+        return unquote(normalized[len(settings.MEDIA_URL):].lstrip("/"))
 
     if normalized.startswith("/"):
-        return normalized
+        return unquote(normalized)
 
     return normalized
 
 
 def build_media_url(path: str, request=None) -> str:
-    media_url = f"{get_media_prefix()}{path.lstrip('/')}"
+    clean_path = path.lstrip("/")
+    encoded_path = "/".join(quote(part) for part in clean_path.split("/"))
+    media_url = f"{get_media_prefix()}{encoded_path}"
     if request is None:
         return media_url
     return request.build_absolute_uri(media_url)
@@ -78,13 +81,13 @@ def build_asset_label(name: str | None) -> str:
 
 def default_accent_color(category_name: str | None) -> str:
     normalized = (category_name or "").strip().lower()
-    if "trà" in normalized or "tra" in normalized:
+    if "tr?" in normalized or "tra" in normalized:
         return "#C8956C"
-    if "sinh tố" in normalized or "sinh to" in normalized:
+    if "sinh t?" in normalized or "sinh to" in normalized:
         return "#F5A623"
-    if "nước ép" in normalized or "nuoc ep" in normalized:
+    if "n??c ?p" in normalized or "nuoc ep" in normalized:
         return "#F08B3A"
-    if "đồ ăn" in normalized or "do an" in normalized or "bánh" in normalized or "banh" in normalized:
+    if "?? ?n" in normalized or "do an" in normalized or "b?nh" in normalized or "banh" in normalized:
         return "#CA9C63"
     return "#6B3F2A"
 

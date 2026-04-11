@@ -7,70 +7,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_sheet_surface"
+        android:clipToPadding="false"
         android:orientation="vertical">
 
-        <View
-            android:layout_width="44dp"
-            android:layout_height="4dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_outline_pill" />
+        <include layout="@layout/include_bottom_sheet_header" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingLeft="22dp"
-            android:paddingTop="18dp"
-            android:paddingRight="22dp"
-            android:paddingBottom="22dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:gravity="top"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/text_invoice_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/coffee_950"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/text_invoice_meta"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:textColor="@color/coffee_500"
-                        android:textSize="14sp" />
-                </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/button_close"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@drawable/bg_muted_panel"
-                    android:contentDescription="Đóng"
-                    android:padding="10dp"
-                    android:src="@drawable/ic_close_small"
-                    android:tint="@color/coffee_400" />
-            </LinearLayout>
+            android:paddingLeft="16dp"
+            android:paddingTop="16dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="20dp">
 
             <LinearLayout
                 android:id="@+id/layout_status_chip"
                 android:layout_width="wrap_content"
                 android:layout_height="34dp"
-                android:layout_marginTop="18dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingLeft="12dp"
@@ -80,7 +34,7 @@
                     android:id="@+id/image_status"
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:contentDescription="Trạng thái" />
+                    android:contentDescription="Tr&#7841;ng th&#225;i" />
 
                 <TextView
                     android:id="@+id/text_status"
@@ -94,7 +48,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_surface_card"
                 android:orientation="vertical"
                 android:padding="18dp">
@@ -102,7 +56,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chi tiết đơn hàng"
+                    android:text="Chi ti&#7871;t &#273;&#417;n h&#224;ng"
                     android:textColor="@color/coffee_950"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -131,7 +85,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tổng cộng"
+                        android:text="T&#7893;ng c&#7897;ng"
                         android:textColor="@color/coffee_950"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -150,7 +104,7 @@
                 android:id="@+id/layout_payment_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:paddingLeft="14dp"
@@ -162,7 +116,7 @@
                     android:id="@+id/image_payment"
                     android:layout_width="18dp"
                     android:layout_height="18dp"
-                    android:contentDescription="Thanh toán" />
+                    android:contentDescription="Thanh to&#225;n" />
 
                 <TextView
                     android:id="@+id/text_payment_info"
@@ -177,7 +131,7 @@
                 android:id="@+id/button_print_invoice"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="16dp"
                 android:background="@drawable/bg_auth_dialog_cancel"
                 android:clickable="true"
                 android:focusable="true"
@@ -187,7 +141,7 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:contentDescription="In hóa đơn"
+                    android:contentDescription="In h&#243;a &#273;&#417;n"
                     android:src="@drawable/ic_print_outline"
                     android:tint="@color/coffee_700" />
 
@@ -195,7 +149,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
-                    android:text="In hóa đơn"
+                    android:text="In h&#243;a &#273;&#417;n"
                     android:textColor="@color/coffee_700"
                     android:textSize="15sp"
                     android:textStyle="bold" />

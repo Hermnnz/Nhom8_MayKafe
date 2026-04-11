@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_payment_success_surface"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="28dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="26dp">
+
+    <FrameLayout
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:background="@drawable/bg_payment_success_icon_chip">
+
+        <ImageView
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_gravity="center"
+            android:contentDescription="Thanh to&#225;n th&#224;nh c&#244;ng"
+            android:src="@drawable/ic_success_check" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="Thanh to&#225;n th&#224;nh c&#244;ng!"
+        android:textColor="@color/coffee_950"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:text="&#272;&#417;n h&#224;ng &#273;&#227; &#273;&#432;&#7907;c ghi nh&#7853;n"
+        android:textColor="@color/coffee_500"
+        android:textSize="15sp" />
+</LinearLayout>

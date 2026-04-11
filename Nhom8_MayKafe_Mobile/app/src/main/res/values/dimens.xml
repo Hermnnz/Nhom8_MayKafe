@@ -5,7 +5,17 @@
     <dimen name="card_radius">20dp</dimen>
     <dimen name="chip_radius">24dp</dimen>
     <dimen name="button_radius">18dp</dimen>
-    <dimen name="bottom_nav_height">68dp</dimen>
+    <dimen name="bottom_nav_height">74dp</dimen>
+    <dimen name="bottom_nav_item_touch_height">60dp</dimen>
+    <dimen name="bottom_nav_item_padding_top">4dp</dimen>
+    <dimen name="bottom_nav_item_padding_bottom">2dp</dimen>
+    <dimen name="bottom_nav_icon_slot_size">40dp</dimen>
+    <dimen name="bottom_nav_icon_size">24dp</dimen>
+    <dimen name="bottom_nav_avatar_size">34dp</dimen>
+    <dimen name="bottom_nav_avatar_badge_size">18dp</dimen>
+    <dimen name="bottom_nav_label_size">11sp</dimen>
+    <dimen name="bottom_nav_indicator_width">18dp</dimen>
+    <dimen name="bottom_nav_indicator_height">3dp</dimen>
     <dimen name="thumbnail_radius">16dp</dimen>
     <dimen name="cart_badge_size">18dp</dimen>
 </resources>

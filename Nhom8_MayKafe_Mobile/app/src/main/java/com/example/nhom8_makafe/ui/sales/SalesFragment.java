@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -41,6 +44,7 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
     private final SessionManager sessionManager = SessionManager.getInstance();
     private String selectedCategory = CATEGORY_ALL;
     private String searchQuery = "";
+    private int headerBaseTopPadding;
 
     public static SalesFragment newInstance() {
         return new SalesFragment();
@@ -56,6 +60,8 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        headerBaseTopPadding = binding.layoutHeader.getPaddingTop();
+        applyInsets();
         setupHeader();
         setupRecyclerViews();
         setupSearch();
@@ -63,6 +69,20 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
         loadCategories();
         loadProducts();
         renderCartSummary();
+    }
+
+    private void applyInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.layoutHeader.setPadding(
+                    binding.layoutHeader.getPaddingLeft(),
+                    headerBaseTopPadding + systemBars.top,
+                    binding.layoutHeader.getPaddingRight(),
+                    binding.layoutHeader.getPaddingBottom()
+            );
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(binding.getRoot());
     }
 
     private void setupHeader() {
@@ -208,7 +228,8 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
         int subtotal = sessionManager.getCartSubtotal();
         binding.buttonOpenCart.setVisibility(cartCount > 0 ? View.VISIBLE : View.GONE);
         if (cartCount > 0) {
-            binding.buttonOpenCart.setText(cartCount + " m\u00f3n \u2022 " + FormatUtils.formatCurrency(subtotal));
+            binding.textCartTotal.setText(FormatUtils.formatCurrency(subtotal));
+            binding.textCartBadge.setText(String.valueOf(cartCount));
         }
         if (productAdapter != null) {
             productAdapter.setQuantityMap(buildQuantityMap(sessionManager.getCartItems()));

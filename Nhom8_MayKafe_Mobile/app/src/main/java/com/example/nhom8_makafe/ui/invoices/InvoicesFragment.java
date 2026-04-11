@@ -1,6 +1,5 @@
 package com.example.nhom8_makafe.ui.invoices;
 
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
@@ -32,7 +31,6 @@ import com.example.nhom8_makafe.util.FeedbackSnackbar;
 import com.example.nhom8_makafe.util.FormatUtils;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -67,6 +65,7 @@ public class InvoicesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         baseHeaderTopPadding = binding.layoutHeaderContent.getPaddingTop();
         applyInsets();
+        registerOverlayResults();
 
         adapter = new InvoiceAdapter(new InvoiceAdapter.InvoiceActionListener() {
             @Override
@@ -147,11 +146,10 @@ public class InvoicesFragment extends Fragment {
     }
 
     private void openDatePicker() {
-        Calendar calendar = Calendar.getInstance();
-        new DatePickerDialog(requireContext(), (view, year, month, dayOfMonth) -> {
-            selectedDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
-            loadInvoices();
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+        if (getParentFragmentManager().findFragmentByTag(InvoiceDatePickerOverlayFragment.TAG) == null) {
+            InvoiceDatePickerOverlayFragment.newInstance(selectedDate)
+                    .show(getParentFragmentManager(), InvoiceDatePickerOverlayFragment.TAG);
+        }
     }
 
     private void loadInvoices() {
@@ -293,7 +291,21 @@ public class InvoicesFragment extends Fragment {
 
     private void showDetailDialog(Invoice invoice) {
         InvoiceDetailBottomSheetDialogFragment.newInstance(invoice.getId())
-                .show(getChildFragmentManager(), "invoice_detail_sheet");
+                .show(getParentFragmentManager(), "invoice_detail_sheet");
+    }
+
+    private void registerOverlayResults() {
+        getParentFragmentManager().setFragmentResultListener(
+                InvoiceDatePickerOverlayFragment.REQUEST_KEY,
+                getViewLifecycleOwner(),
+                (requestKey, result) -> {
+                    String value = result.getString(InvoiceDatePickerOverlayFragment.RESULT_DATE, "");
+                    if (value != null) {
+                        selectedDate = value;
+                        loadInvoices();
+                    }
+                }
+        );
     }
 
     @Override

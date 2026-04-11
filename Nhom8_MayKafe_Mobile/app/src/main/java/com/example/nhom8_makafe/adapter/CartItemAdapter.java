@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.model.CartItem;
 import com.example.nhom8_makafe.util.FormatUtils;
+import com.example.nhom8_makafe.util.ImageLoader;
 import com.example.nhom8_makafe.util.UiUtils;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -53,7 +55,7 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CartItem item = items.get(position);
-        UiUtils.bindThumbnail(holder.textThumbnail, holder.textThumbnail, item.getAssetLabel(), item.getAccentColorHex());
+        bindImage(holder, item);
         holder.textName.setText(item.getName());
         holder.textPrice.setText(FormatUtils.formatCurrency(item.getPrice()));
         holder.textQuantity.setText(String.valueOf(item.getQuantity()));
@@ -81,26 +83,43 @@ public class CartItemAdapter extends RecyclerView.Adapter<CartItemAdapter.ViewHo
         holder.editNote.addTextChangedListener(holder.noteWatcher);
     }
 
+    private void bindImage(@NonNull ViewHolder holder, @NonNull CartItem item) {
+        String imageUrl = item.getImageUrl();
+        boolean hasImage = imageUrl != null && !imageUrl.trim().isEmpty();
+        if (hasImage) {
+            holder.imageProduct.setVisibility(View.VISIBLE);
+            holder.textThumbnail.setVisibility(View.GONE);
+            ImageLoader.load(holder.imageProduct, imageUrl);
+            return;
+        }
+        holder.imageProduct.setImageDrawable(null);
+        holder.imageProduct.setVisibility(View.GONE);
+        holder.textThumbnail.setVisibility(View.VISIBLE);
+        UiUtils.bindThumbnail(holder.textThumbnail, holder.textThumbnail, item.getAssetLabel(), item.getAccentColorHex());
+    }
+
     @Override
     public int getItemCount() {
         return items.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        private final ImageView imageProduct;
         private final TextView textThumbnail;
         private final TextView textName;
         private final TextView textPrice;
         private final TextView textQuantity;
         private final TextView textTotal;
         private final ImageButton buttonNote;
-        private final ImageButton buttonMinus;
-        private final ImageButton buttonPlus;
+        private final TextView buttonMinus;
+        private final TextView buttonPlus;
         private final TextInputLayout layoutNote;
         private final TextInputEditText editNote;
         private TextWatcher noteWatcher;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            imageProduct = itemView.findViewById(R.id.image_product);
             textThumbnail = itemView.findViewById(R.id.text_thumbnail);
             textName = itemView.findViewById(R.id.text_name);
             textPrice = itemView.findViewById(R.id.text_price);

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M10.5,4.8H18.2L25.2,11.8V24.2C25.2,25.3 24.3,26.2 23.2,26.2H10.5C9.4,26.2 8.5,25.3 8.5,24.2V6.8C8.5,5.7 9.4,4.8 10.5,4.8Z"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M18.2,4.8V11.8H25.2"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,13.2H14.2"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M16.6,13.2H21.6"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,18.1H14.2"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M16.6,18.1H21.6"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,23H21.6"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+</vector>

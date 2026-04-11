@@ -8,14 +8,16 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.model.Invoice;
+import com.example.nhom8_makafe.model.OrderItem;
 import com.example.nhom8_makafe.model.OrderStatus;
 import com.example.nhom8_makafe.util.FormatUtils;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,20 +54,28 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Invoice invoice = items.get(position);
         boolean expanded = invoice.getId().equals(expandedInvoiceId);
+        List<OrderItem> invoiceItems = invoice.getItems();
+        int invoiceTotal = resolveInvoiceTotal(invoiceItems, invoice.getTotal());
+        String paymentMethod = invoice.getPaymentMethodLabel();
+        boolean hasPaymentMethod = paymentMethod != null && !paymentMethod.trim().isEmpty();
+        String note = invoice.getNote();
+        boolean hasNote = note != null && !note.trim().isEmpty();
 
         holder.textInvoiceId.setText(invoice.getId());
-        holder.textMeta.setText(invoice.getTableNumber() + " • " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
-        holder.textTotal.setText(formatInvoiceTotal(invoice.getTotal()));
-        holder.textPaymentMethod.setText(invoice.getPaymentMethodLabel() == null ? "" : invoice.getPaymentMethodLabel());
-        holder.textPreview.setText(buildPreview(invoice));
+        holder.textMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+        holder.textTotal.setText(formatInvoiceTotal(invoiceTotal));
+        holder.textPreview.setText(buildPreview(invoiceItems));
+        holder.textExpandedTotal.setText(formatInvoiceTotal(invoiceTotal));
+        holder.textPaymentMethod.setVisibility(hasPaymentMethod ? View.VISIBLE : View.GONE);
+        holder.textPaymentMethod.setText(hasPaymentMethod ? paymentMethod : "");
+        holder.textNote.setVisibility(hasNote ? View.VISIBLE : View.GONE);
+        holder.textNote.setText(hasNote ? "Ghi ch\u00fa: " + note : "");
         bindStatus(holder, invoice.getStatus());
 
         holder.layoutExpanded.setVisibility(expanded ? View.VISIBLE : View.GONE);
         holder.imageExpand.setImageResource(expanded ? R.drawable.ic_chevron_up : R.drawable.ic_chevron_down);
 
-        holder.lineItemAdapter.submitList(invoice.getItems());
-        holder.textNote.setVisibility(invoice.getNote() == null || invoice.getNote().isEmpty() ? View.GONE : View.VISIBLE);
-        holder.textNote.setText("Ghi chú: " + invoice.getNote());
+        holder.lineItemAdapter.submitList(invoiceItems);
 
         View.OnClickListener toggleListener = v -> {
             expandedInvoiceId = expanded ? null : invoice.getId();
@@ -81,24 +91,29 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
         if (status == OrderStatus.CANCELLED) {
             holder.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_cancelled);
             holder.imageStatus.setImageResource(R.drawable.ic_stat_cancelled);
-            holder.imageStatus.setColorFilter(holder.imageStatus.getContext().getColor(R.color.danger));
-            holder.textStatus.setTextColor(holder.textStatus.getContext().getColor(R.color.danger));
-            holder.textStatus.setText("Đã hủy");
-        } else {
-            holder.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_paid);
-            holder.imageStatus.setImageResource(R.drawable.ic_stat_paid);
-            holder.imageStatus.setColorFilter(holder.imageStatus.getContext().getColor(R.color.success));
-            holder.textStatus.setTextColor(holder.textStatus.getContext().getColor(R.color.success));
-            holder.textStatus.setText("Đã thanh toán");
+            holder.imageStatus.setColorFilter(ContextCompat.getColor(holder.imageStatus.getContext(), R.color.danger));
+            holder.textStatus.setTextColor(ContextCompat.getColor(holder.textStatus.getContext(), R.color.danger));
+            holder.textStatus.setText("\u0110\u00e3 h\u1ee7y");
+            return;
         }
+
+        holder.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_paid);
+        holder.imageStatus.setImageResource(R.drawable.ic_stat_paid);
+        holder.imageStatus.setColorFilter(ContextCompat.getColor(holder.imageStatus.getContext(), R.color.success));
+        holder.textStatus.setTextColor(ContextCompat.getColor(holder.textStatus.getContext(), R.color.success));
+        holder.textStatus.setText("\u0110\u00e3 thanh to\u00e1n");
     }
 
-    private String buildPreview(Invoice invoice) {
+    private String buildPreview(List<OrderItem> orderItems) {
+        if (orderItems.isEmpty()) {
+            return "";
+        }
+
         StringBuilder builder = new StringBuilder();
-        builder.append(invoice.getItems().size()).append(" món • ");
-        for (int i = 0; i < invoice.getItems().size(); i++) {
-            builder.append(invoice.getItems().get(i).getName());
-            if (i < invoice.getItems().size() - 1) {
+        builder.append(orderItems.size()).append(" m\u00f3n").append(" \u2022 ");
+        for (int i = 0; i < orderItems.size(); i++) {
+            builder.append(orderItems.get(i).getName());
+            if (i < orderItems.size() - 1) {
                 builder.append(", ");
             }
         }
@@ -106,6 +121,9 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
     }
 
     private String formatDisplayDate(String isoDate) {
+        if (isoDate == null) {
+            return "";
+        }
         String[] parts = isoDate.split("-");
         if (parts.length != 3) {
             return isoDate;
@@ -114,7 +132,24 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
     }
 
     private String formatInvoiceTotal(int total) {
-        return FormatUtils.formatCurrency(total).replace("đ", " đ");
+        String formatted = FormatUtils.formatCurrency(total).replace("\u0111", "\u20ab");
+        int symbolIndex = formatted.lastIndexOf('\u20ab');
+        if (symbolIndex < 0) {
+            return formatted;
+        }
+        return formatted.substring(0, symbolIndex).trim() + " \u20ab";
+    }
+
+    private int resolveInvoiceTotal(List<OrderItem> invoiceItems, int storedTotal) {
+        if (storedTotal > 0) {
+            return storedTotal;
+        }
+
+        int calculatedTotal = 0;
+        for (int i = 0; i < invoiceItems.size(); i++) {
+            calculatedTotal += invoiceItems.get(i).getLineTotal();
+        }
+        return calculatedTotal;
     }
 
     @Override
@@ -136,8 +171,9 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
         private final LinearLayout layoutExpanded;
         private final RecyclerView recyclerItems;
         private final TextView textNote;
-        private final AppCompatButton buttonPrint;
-        private final AppCompatButton buttonDetail;
+        private final TextView textExpandedTotal;
+        private final MaterialButton buttonPrint;
+        private final MaterialButton buttonDetail;
         private final InvoiceLineItemAdapter lineItemAdapter;
 
         ViewHolder(@NonNull View itemView) {
@@ -155,6 +191,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
             layoutExpanded = itemView.findViewById(R.id.layout_expanded);
             recyclerItems = itemView.findViewById(R.id.recycler_invoice_items);
             textNote = itemView.findViewById(R.id.text_note);
+            textExpandedTotal = itemView.findViewById(R.id.text_expanded_total);
             buttonPrint = itemView.findViewById(R.id.button_print);
             buttonDetail = itemView.findViewById(R.id.button_detail);
             lineItemAdapter = new InvoiceLineItemAdapter();

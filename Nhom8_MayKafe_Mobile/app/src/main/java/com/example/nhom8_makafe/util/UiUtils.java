@@ -22,8 +22,12 @@ public final class UiUtils {
     }
 
     public static void bindThumbnail(View container, TextView textView, String label, String colorHex) {
-        container.setBackground(roundedBackground(colorHex, 32f));
         textView.setText(label);
+        if (container == textView) {
+            textView.setBackground(roundedBackground(colorHex, 32f));
+            return;
+        }
+        container.setBackground(roundedBackground(colorHex, 32f));
         textView.setBackground(roundedBackground(withAlpha(colorHex, 0.18f), 24f));
     }
 

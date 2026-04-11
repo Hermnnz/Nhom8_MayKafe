@@ -9,6 +9,7 @@ import com.example.nhom8_makafe.model.Invoice;
 import com.example.nhom8_makafe.model.InvoiceSummaryData;
 import com.example.nhom8_makafe.model.OrderItem;
 import com.example.nhom8_makafe.model.OrderStatus;
+import com.example.nhom8_makafe.model.PaymentSession;
 import com.example.nhom8_makafe.model.PaymentMethod;
 import com.example.nhom8_makafe.model.Product;
 import com.example.nhom8_makafe.model.ReportChartSection;
@@ -24,6 +25,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import org.json.JSONObject;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -287,19 +290,135 @@ public class ApiRepository {
         request.discountPercent = discountPercent;
         request.paymentMethod = paymentMethod == PaymentMethod.QR ? "QR" : "CASH";
         request.cashReceived = paymentMethod == PaymentMethod.CASH ? cashReceived : null;
-        request.items = new ArrayList<>();
-        for (CartItem cartItem : cartItems) {
-            request.items.add(new CheckoutItemRequest(
-                    cartItem.getProductId(),
-                    cartItem.getQuantity(),
-                    emptyToNull(cartItem.getNote())
-            ));
-        }
+        request.items = buildCheckoutItems(cartItems);
 
         enqueue(apiService.checkout(authorization, request), new ApiCallback<OrderDto>() {
             @Override
             public void onSuccess(OrderDto data) {
                 callback.onSuccess(mapInvoice(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void initializeQrPayment(String tableNumber, int discountPercent,
+                                    List<CartItem> cartItems, ApiCallback<PaymentSession> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        PaymentInitRequest request = new PaymentInitRequest();
+        request.tableNumber = tableNumber;
+        request.discountPercent = discountPercent;
+        request.items = buildCheckoutItems(cartItems);
+        enqueue(apiService.createQrPayment(authorization, request), new ApiCallback<PaymentDto>() {
+            @Override
+            public void onSuccess(PaymentDto data) {
+                callback.onSuccess(mapPaymentSession(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void refreshQrPayment(int orderId, ApiCallback<PaymentSession> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        enqueue(apiService.refreshQrPayment(authorization, orderId), new ApiCallback<PaymentDto>() {
+            @Override
+            public void onSuccess(PaymentDto data) {
+                callback.onSuccess(mapPaymentSession(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void confirmCashPayment(String tableNumber, int discountPercent, int cashReceived,
+                                   List<CartItem> cartItems, ApiCallback<Invoice> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        CashPaymentRequest request = new CashPaymentRequest();
+        request.tableNumber = tableNumber;
+        request.discountPercent = discountPercent;
+        request.cashReceived = cashReceived;
+        request.items = buildCheckoutItems(cartItems);
+        enqueue(apiService.confirmCashPayment(authorization, request), new ApiCallback<OrderDto>() {
+            @Override
+            public void onSuccess(OrderDto data) {
+                callback.onSuccess(mapInvoice(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void confirmCashPaymentForOrder(int orderId, int cashReceived, ApiCallback<Invoice> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        enqueue(apiService.confirmCashPaymentForOrder(
+                authorization,
+                orderId,
+                new CashPaymentConfirmRequest(cashReceived)
+        ), new ApiCallback<OrderDto>() {
+            @Override
+            public void onSuccess(OrderDto data) {
+                callback.onSuccess(mapInvoice(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void confirmBankTransfer(int paymentId, ApiCallback<Invoice> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        enqueue(apiService.confirmBankTransfer(authorization, paymentId), new ApiCallback<OrderDto>() {
+            @Override
+            public void onSuccess(OrderDto data) {
+                callback.onSuccess(mapInvoice(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void fetchPaymentStatus(int paymentId, ApiCallback<PaymentSession> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        enqueue(apiService.getPaymentStatus(authorization, paymentId), new ApiCallback<PaymentDto>() {
+            @Override
+            public void onSuccess(PaymentDto data) {
+                callback.onSuccess(mapPaymentSession(data));
             }
 
             @Override
@@ -338,6 +457,18 @@ public class ApiRepository {
         request.accentColorHex = product.getAccentColorHex();
         request.imageUrl = emptyToNull(product.getImageUrl());
         return request;
+    }
+
+    private List<CheckoutItemRequest> buildCheckoutItems(List<CartItem> cartItems) {
+        List<CheckoutItemRequest> requests = new ArrayList<>();
+        for (CartItem cartItem : cartItems) {
+            requests.add(new CheckoutItemRequest(
+                    cartItem.getProductId(),
+                    cartItem.getQuantity(),
+                    emptyToNull(cartItem.getNote())
+            ));
+        }
+        return requests;
     }
 
     private ApiCallback<ProductDto> mapProductCallback(ApiCallback<Product> callback) {
@@ -391,6 +522,22 @@ public class ApiRepository {
                 mapOrderStatus(dto == null ? null : dto.status),
                 dto == null ? null : dto.paymentMethodLabel,
                 dto == null ? "" : dto.note
+        );
+    }
+
+    private PaymentSession mapPaymentSession(PaymentDto dto) {
+        return new PaymentSession(
+                dto == null ? 0 : dto.orderId,
+                dto == null || dto.orderCode == null ? "" : dto.orderCode,
+                dto == null ? 0 : dto.paymentId,
+                dto == null ? 0 : dto.amount,
+                dto == null || dto.bankName == null ? "" : dto.bankName,
+                dto == null || dto.accountNumber == null ? "" : dto.accountNumber,
+                dto == null || dto.accountName == null ? "" : dto.accountName,
+                dto == null || dto.transferContent == null ? "" : dto.transferContent,
+                dto == null || dto.qrContent == null ? "" : dto.qrContent,
+                dto == null || dto.status == null ? "" : dto.status,
+                dto == null || dto.expiresAt == null ? "" : dto.expiresAt
         );
     }
 
@@ -541,6 +688,14 @@ public class ApiRepository {
             if (response.errorBody() != null) {
                 String raw = response.errorBody().string();
                 if (raw != null && !raw.trim().isEmpty()) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(raw);
+                        String message = jsonObject.optString("message", null);
+                        if (message != null && !message.trim().isEmpty()) {
+                            return message;
+                        }
+                    } catch (Exception ignored) {
+                    }
                     return raw;
                 }
             }

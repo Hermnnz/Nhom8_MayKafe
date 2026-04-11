@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nav_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackgroundBorderless"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_horizontal"
+    android:minHeight="@dimen/bottom_nav_item_touch_height"
+    android:orientation="vertical"
+    android:paddingLeft="4dp"
+    android:paddingTop="@dimen/bottom_nav_item_padding_top"
+    android:paddingRight="4dp"
+    android:paddingBottom="@dimen/bottom_nav_item_padding_bottom">
+
+    <View
+        android:id="@+id/view_indicator"
+        android:layout_width="@dimen/bottom_nav_indicator_width"
+        android:layout_height="@dimen/bottom_nav_indicator_height"
+        android:background="@drawable/bg_bottom_nav_indicator"
+        android:visibility="invisible" />
+
+    <FrameLayout
+        android:id="@+id/layout_avatar_slot"
+        android:layout_width="@dimen/bottom_nav_icon_slot_size"
+        android:layout_height="@dimen/bottom_nav_icon_slot_size"
+        android:layout_marginTop="6dp">
+
+        <TextView
+            android:id="@+id/text_avatar"
+            android:layout_width="@dimen/bottom_nav_avatar_size"
+            android:layout_height="@dimen/bottom_nav_avatar_size"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="MK"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:id="@+id/layout_avatar_badge"
+            android:layout_width="@dimen/bottom_nav_avatar_badge_size"
+            android:layout_height="@dimen/bottom_nav_avatar_badge_size"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_bottom_nav_avatar_badge">
+
+            <ImageView
+                android:id="@+id/image_badge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_nav_badge_logout"
+                android:tint="@color/bottom_nav_active" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/text_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="@color/bottom_nav_inactive"
+        android:textSize="@dimen/bottom_nav_label_size" />
+
+</LinearLayout>

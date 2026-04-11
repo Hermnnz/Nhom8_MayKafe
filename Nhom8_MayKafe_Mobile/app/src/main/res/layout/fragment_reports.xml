@@ -51,7 +51,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="Báo cáo"
+                    android:text="B&#225;o c&#225;o"
                     android:textColor="@color/coffee_950"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -91,7 +91,7 @@
                     android:minWidth="0dp"
                     android:paddingLeft="0dp"
                     android:paddingRight="0dp"
-                    android:text="Tuần"
+                    android:text="Tu&#7847;n"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
                     android:textSize="11sp"
@@ -110,7 +110,7 @@
                     android:minWidth="0dp"
                     android:paddingLeft="0dp"
                     android:paddingRight="0dp"
-                    android:text="Tháng"
+                    android:text="Th&#225;ng"
                     android:textAllCaps="false"
                     android:textColor="@color/coffee_500"
                     android:textSize="11sp"
@@ -129,7 +129,7 @@
                     android:minWidth="0dp"
                     android:paddingLeft="0dp"
                     android:paddingRight="0dp"
-                    android:text="Năm"
+                    android:text="N&#259;m"
                     android:textAllCaps="false"
                     android:textColor="@color/coffee_500"
                     android:textSize="11sp"
@@ -247,7 +247,7 @@
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:layout_gravity="center"
-                                android:contentDescription="Đơn hàng"
+                                android:contentDescription="&#272;&#417;n h&#224;ng"
                                 android:src="@drawable/ic_kpi_orders"
                                 android:tint="@color/coffee_500" />
                         </FrameLayout>
@@ -260,7 +260,7 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="Đơn hàng"
+                            android:text="&#272;&#417;n h&#224;ng"
                             android:textColor="@color/coffee_500"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -322,7 +322,7 @@
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:layout_gravity="center"
-                                android:contentDescription="TB đơn"
+                                android:contentDescription="TB/&#273;&#417;n"
                                 android:src="@drawable/ic_kpi_average"
                                 android:tint="@color/coffee_500" />
                         </FrameLayout>
@@ -335,7 +335,7 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="TB/đơn"
+                            android:text="TB/&#273;&#417;n"
                             android:textColor="@color/coffee_500"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -394,7 +394,7 @@
                                 android:layout_width="18dp"
                                 android:layout_height="18dp"
                                 android:layout_gravity="center"
-                                android:contentDescription="Khách hàng"
+                                android:contentDescription="Kh&#225;ch h&#224;ng"
                                 android:src="@drawable/ic_kpi_customers"
                                 android:tint="@color/coffee_500" />
                         </FrameLayout>
@@ -407,7 +407,7 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="Khách hàng"
+                            android:text="Kh&#225;ch h&#224;ng"
                             android:textColor="@color/coffee_500"
                             android:textSize="13sp"
                             android:textStyle="bold" />
@@ -462,7 +462,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:maxLines="1"
-                    android:text="Doanh thu theo ngày"
+                    android:text="Doanh thu theo ng&#224;y"
                     android:textColor="@color/coffee_950"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -471,7 +471,7 @@
                     android:id="@+id/text_chart_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tuần này"
+                    android:text="Tu&#7847;n n&#224;y"
                     android:textColor="@color/coffee_500"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -500,7 +500,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Món bán chạy"
+                android:text="M&#243;n b&#225;n ch&#7841;y"
                 android:textColor="@color/coffee_950"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -528,7 +528,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Theo danh mục"
+                android:text="Theo danh m&#7909;c"
                 android:textColor="@color/coffee_950"
                 android:textSize="17sp"
                 android:textStyle="bold" />

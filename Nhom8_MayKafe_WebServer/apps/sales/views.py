@@ -1,4 +1,5 @@
-﻿from django.db.models import Q, Sum
+from django.db.models import Q, Sum
+from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -6,8 +7,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from apps.common.responses import success_response
-from apps.sales.models import Order
-from apps.sales.serializers import CheckoutSerializer, OrderSerializer
+from apps.sales.models import Order, OrderPayment
+from apps.sales.serializers import (
+    CashPaymentCartConfirmSerializer,
+    CashPaymentConfirmSerializer,
+    CheckoutSerializer,
+    OrderPaymentSerializer,
+    OrderQrPaymentSerializer,
+    OrderSerializer,
+    PaymentConfirmSerializer,
+    PaymentStatusSerializer,
+    QrPaymentInitSerializer,
+)
 
 
 class CheckoutAPIView(APIView):
@@ -24,8 +35,88 @@ class CheckoutAPIView(APIView):
         )
 
 
+class QrPaymentInitAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = QrPaymentInitSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        payment = serializer.save()
+        return success_response(
+            data=OrderPaymentSerializer(payment).data,
+            message="Tao du lieu thanh toan QR thanh cong.",
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
+class OrderQrPaymentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id: int):
+        order = get_object_or_404(Order, pk=order_id)
+        serializer = OrderQrPaymentSerializer(data={}, context={"order": order, "request": request})
+        serializer.is_valid(raise_exception=True)
+        payment = serializer.save()
+        return success_response(
+            data=OrderPaymentSerializer(payment).data,
+            message="Lay du lieu thanh toan QR thanh cong.",
+        )
+
+
+class CashPaymentCartConfirmAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = CashPaymentCartConfirmSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return success_response(
+            data=OrderSerializer(order).data,
+            message="Xac nhan thanh toan tien mat thanh cong.",
+        )
+
+
+class OrderCashPaymentConfirmAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id: int):
+        order = get_object_or_404(Order, pk=order_id)
+        serializer = CashPaymentConfirmSerializer(data=request.data, context={"order": order, "request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return success_response(
+            data=OrderSerializer(order).data,
+            message="Xac nhan thanh toan tien mat thanh cong.",
+        )
+
+
+class PaymentConfirmAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, payment_id: int):
+        payment = get_object_or_404(OrderPayment.objects.select_related("order"), pk=payment_id)
+        serializer = PaymentConfirmSerializer(data=request.data or {}, context={"payment": payment, "request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return success_response(
+            data=OrderSerializer(order).data,
+            message="Xac nhan thanh toan chuyen khoan thanh cong.",
+        )
+
+
+class PaymentStatusAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, payment_id: int):
+        payment = get_object_or_404(OrderPayment.objects.select_related("order"), pk=payment_id)
+        return success_response(
+            data=PaymentStatusSerializer(payment).data,
+            message="Lay trang thai thanh toan thanh cong.",
+        )
+
+
 class OrderViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Order.objects.prefetch_related("items__product").all()
+    queryset = Order.objects.prefetch_related("items__product", "payments").all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 

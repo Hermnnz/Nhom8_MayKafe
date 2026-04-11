@@ -34,6 +34,16 @@ def env_bool(key: str, default: bool = False) -> bool:
     return value.lower() in {"1", "true", "yes", "on"}
 
 
+def env_int(key: str, default: int) -> int:
+    value = env(key)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def parse_csv(value: str | None) -> list[str]:
     if not value:
         return []
@@ -202,3 +212,10 @@ CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", DEBUG)
 CORS_ALLOWED_ORIGINS = parse_csv(env("CORS_ALLOWED_ORIGINS"))
 
 CSRF_TRUSTED_ORIGINS = parse_csv(env("CSRF_TRUSTED_ORIGINS"))
+
+PAYMENT_RECEIVER_BANK_NAME = env("PAYMENT_RECEIVER_BANK_NAME", "TPBank")
+PAYMENT_RECEIVER_BANK_BIN = env("PAYMENT_RECEIVER_BANK_BIN", "970423")
+PAYMENT_RECEIVER_ACCOUNT_NUMBER = env("PAYMENT_RECEIVER_ACCOUNT_NUMBER", "00003632650")
+PAYMENT_RECEIVER_ACCOUNT_NAME = env("PAYMENT_RECEIVER_ACCOUNT_NAME", "MAYKAFE COFFEE")
+PAYMENT_TRANSFER_CONTENT = env("PAYMENT_TRANSFER_CONTENT", "MayKafe thanh toan")
+PAYMENT_QR_EXPIRES_MINUTES = env_int("PAYMENT_QR_EXPIRES_MINUTES", 15)

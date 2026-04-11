@@ -1,6 +1,5 @@
 package com.example.nhom8_makafe.ui.invoices;
 
-import android.app.Dialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +15,18 @@ import com.example.nhom8_makafe.adapter.InvoiceDetailItemAdapter;
 import com.example.nhom8_makafe.data.api.ApiCallback;
 import com.example.nhom8_makafe.data.api.ApiRepository;
 import com.example.nhom8_makafe.databinding.BottomSheetInvoiceDetailBinding;
+import com.example.nhom8_makafe.databinding.IncludeBottomSheetHeaderBinding;
 import com.example.nhom8_makafe.model.Invoice;
 import com.example.nhom8_makafe.model.OrderStatus;
 import com.example.nhom8_makafe.util.FeedbackSnackbar;
 import com.example.nhom8_makafe.util.FormatUtils;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.example.nhom8_makafe.ui.overlay.OverlayFragment;
 
-public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFragment {
+public class InvoiceDetailBottomSheetDialogFragment extends OverlayFragment {
     private static final String ARG_INVOICE_ID = "invoice_id";
 
     private BottomSheetInvoiceDetailBinding binding;
+    private IncludeBottomSheetHeaderBinding headerBinding;
     private final ApiRepository apiRepository = ApiRepository.getInstance();
     private InvoiceDetailItemAdapter adapter;
     private Invoice currentInvoice;
@@ -44,24 +43,8 @@ public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFra
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = BottomSheetInvoiceDetailBinding.inflate(inflater, container, false);
-        return binding.getRoot();
-    }
-
-    @NonNull
-    @Override
-    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
-        dialog.setOnShowListener(dialogInterface -> {
-            BottomSheetDialog bottomSheetDialog = (BottomSheetDialog) dialogInterface;
-            View bottomSheet = bottomSheetDialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
-            if (bottomSheet != null) {
-                bottomSheet.setBackgroundResource(android.R.color.transparent);
-                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
-                behavior.setSkipCollapsed(true);
-                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            }
-        });
-        return dialog;
+        headerBinding = IncludeBottomSheetHeaderBinding.bind(binding.getRoot());
+        return createBottomSheetOverlay(binding.getRoot(), true);
     }
 
     @Override
@@ -70,7 +53,9 @@ public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFra
         adapter = new InvoiceDetailItemAdapter();
         binding.recyclerDetailItems.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerDetailItems.setAdapter(adapter);
-        binding.buttonClose.setOnClickListener(v -> dismissAllowingStateLoss());
+        if (headerBinding != null) {
+            headerBinding.buttonCloseSheet.setOnClickListener(v -> dismissAllowingStateLoss());
+        }
         binding.buttonPrintInvoice.setOnClickListener(v -> {
             if (currentInvoice != null && binding.getRoot() instanceof FrameLayout) {
                 FeedbackSnackbar.showPrintingOverlay((FrameLayout) binding.getRoot(), currentInvoice.getId());
@@ -106,8 +91,11 @@ public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFra
     }
 
     private void bindInvoice(Invoice invoice) {
-        binding.textInvoiceTitle.setText("H\u00f3a \u0111\u01a1n " + invoice.getId());
-        binding.textInvoiceMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+        if (headerBinding != null) {
+            headerBinding.textSheetTitle.setText("H\u00f3a \u0111\u01a1n " + invoice.getId());
+            headerBinding.textSheetMeta.setVisibility(View.VISIBLE);
+            headerBinding.textSheetMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+        }
         bindStatus(invoice.getStatus());
         adapter.submitList(invoice.getItems());
         binding.textTotalValue.setText(FormatUtils.formatCurrency(invoice.getTotal()));
@@ -154,6 +142,7 @@ public class InvoiceDetailBottomSheetDialogFragment extends BottomSheetDialogFra
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        headerBinding = null;
         binding = null;
     }
 }

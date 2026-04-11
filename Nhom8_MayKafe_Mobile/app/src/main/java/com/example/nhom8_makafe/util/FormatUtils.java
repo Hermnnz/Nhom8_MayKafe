@@ -12,7 +12,7 @@ public final class FormatUtils {
     }
 
     public static String formatCurrency(int amount) {
-        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "đ";
+        return NumberFormat.getNumberInstance(VIETNAMESE).format(amount) + "\u0111";
     }
 
     public static String formatCompactCurrency(int amount) {

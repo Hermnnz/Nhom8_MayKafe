@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M4.5,5.5H8"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M8,5.5L11.2,12.2"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M11.2,12.2H26"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M26,12.2L24.1,20.1H13.5"
+        android:strokeColor="@color/bottom_nav_disabled"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="@color/bottom_nav_disabled"
+        android:pathData="M12.6,25m-2.1,0a2.1,2.1 0,1 1,4.2 0a2.1,2.1 0,1 1,-4.2 0" />
+    <path
+        android:fillColor="@color/bottom_nav_disabled"
+        android:pathData="M22.1,25m-2.1,0a2.1,2.1 0,1 1,4.2 0a2.1,2.1 0,1 1,-4.2 0" />
+</vector>

@@ -1,10 +1,17 @@
-﻿from django.db import transaction
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import serializers
 
-from apps.catalog.models import Product
 from apps.catalog.services import build_asset_label, default_accent_color
-from apps.sales.models import Order, OrderItem
+from apps.sales.models import Order, OrderItem, OrderPayment
+from apps.sales.services import (
+    confirm_bank_transfer,
+    confirm_cash_payment,
+    create_cash_paid_order,
+    create_or_refresh_qr_payment,
+    create_qr_order_payment,
+    expire_payment_if_needed,
+)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -101,83 +108,155 @@ class OrderSerializer(serializers.ModelSerializer):
         return round((obj.discount_amount / obj.subtotal) * 100)
 
 
+class OrderPaymentSerializer(serializers.ModelSerializer):
+    paymentId = serializers.IntegerField(source="id", read_only=True)
+    orderId = serializers.IntegerField(source="order.id", read_only=True)
+    orderCode = serializers.CharField(source="order.public_code", read_only=True)
+    amount = serializers.SerializerMethodField()
+    bankName = serializers.CharField(source="bank_name", read_only=True)
+    accountNumber = serializers.CharField(source="account_number", read_only=True)
+    accountName = serializers.CharField(source="account_name", read_only=True)
+    transferContent = serializers.CharField(source="transfer_content", read_only=True)
+    qrContent = serializers.CharField(source="qr_content", read_only=True)
+    status = serializers.CharField(read_only=True)
+    expiresAt = serializers.DateTimeField(source="expires_at", read_only=True)
+    paidAt = serializers.DateTimeField(source="paid_at", read_only=True)
+
+    class Meta:
+        model = OrderPayment
+        fields = (
+            "paymentId",
+            "orderId",
+            "orderCode",
+            "amount",
+            "bankName",
+            "accountNumber",
+            "accountName",
+            "transferContent",
+            "qrContent",
+            "status",
+            "expiresAt",
+            "paidAt",
+        )
+
+    def get_amount(self, obj):
+        return int(obj.amount)
+
+
 class CheckoutItemInputSerializer(serializers.Serializer):
     productId = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1)
     note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
 
-class CheckoutSerializer(serializers.Serializer):
+class CartOrderBaseSerializer(serializers.Serializer):
     tableNumber = serializers.CharField(required=False, allow_blank=True, allow_null=True, default="Bàn mới")
     discountPercent = serializers.IntegerField(min_value=0, max_value=100, default=0)
-    paymentMethod = serializers.ChoiceField(choices=Order.PAYMENT_CHOICES)
-    cashReceived = serializers.FloatField(required=False, min_value=0)
     items = CheckoutItemInputSerializer(many=True, allow_empty=False)
 
     def validate(self, attrs):
-        payment_method = attrs["paymentMethod"]
-        cash_received = attrs.get("cashReceived", 0)
-        if payment_method == Order.PAYMENT_CASH and cash_received <= 0:
-            raise serializers.ValidationError({"cashReceived": "Vui long nhap so tien khach dua."})
         product_ids = [item["productId"] for item in attrs["items"]]
         if len(product_ids) != len(set(product_ids)):
             raise serializers.ValidationError({"items": "Khong duoc gui trung san pham trong mot don hang."})
         return attrs
 
-    def _parse_table_number(self, raw_value: str | None) -> int:
-        if not raw_value:
-            return 0
-        digits = "".join(ch for ch in raw_value if ch.isdigit())
-        return int(digits) if digits else 0
+
+class CheckoutSerializer(CartOrderBaseSerializer):
+    paymentMethod = serializers.ChoiceField(choices=Order.PAYMENT_CHOICES)
+    cashReceived = serializers.FloatField(required=False, min_value=0)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs["paymentMethod"] == Order.PAYMENT_CASH and attrs.get("cashReceived", 0) <= 0:
+            raise serializers.ValidationError({"cashReceived": "Vui long nhap so tien khach dua."})
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data):
-        discount_percent = validated_data["discountPercent"]
         payment_method = validated_data["paymentMethod"]
-        items_data = validated_data["items"]
-
-        product_map = {
-            product.id: product
-            for product in Product.objects.filter(id__in=[item["productId"] for item in items_data], available=True)
-        }
-        if len(product_map) != len(items_data):
-            raise serializers.ValidationError({"items": "Mot hoac nhieu mon khong ton tai hoac da ngung ban."})
-
-        subtotal = 0
-        order_items_to_create = []
-        for item in items_data:
-            product = product_map[item["productId"]]
-            line_total = product.price * item["quantity"]
-            subtotal += line_total
-            order_items_to_create.append(
-                OrderItem(
-                    product=product,
-                    unit_price=product.price,
-                    quantity=item["quantity"],
-                    line_total=line_total,
-                )
+        if payment_method == Order.PAYMENT_CASH:
+            order, _payment = create_cash_paid_order(
+                validated_data.get("tableNumber"),
+                validated_data["discountPercent"],
+                int(validated_data.get("cashReceived", 0)),
+                validated_data["items"],
             )
+            return order
 
-        discount_amount = round(subtotal * discount_percent / 100)
-        total_amount = max(0, subtotal - discount_amount)
-        cash_received = validated_data.get("cashReceived", 0)
-        if payment_method == Order.PAYMENT_CASH and cash_received < total_amount:
-            raise serializers.ValidationError({"cashReceived": "So tien khach dua chua du."})
-
-        order = Order.objects.create(
-            paid_at=timezone.now(),
-            subtotal=subtotal,
-            discount_amount=discount_amount,
-            total_amount=total_amount,
-            payment_method=payment_method,
-            status=Order.STATUS_PAID,
-            cash_received=cash_received if payment_method == Order.PAYMENT_CASH else total_amount,
-            change_amount=max(0, cash_received - total_amount) if payment_method == Order.PAYMENT_CASH else 0,
-            table_number=self._parse_table_number(validated_data.get("tableNumber")),
+        order, payment = create_qr_order_payment(
+            validated_data.get("tableNumber"),
+            validated_data["discountPercent"],
+            validated_data["items"],
         )
-
-        for item in order_items_to_create:
-            item.order = order
-        OrderItem.objects.bulk_create(order_items_to_create)
-
+        order, _payment = confirm_bank_transfer(payment)
         return order
+
+
+class QrPaymentInitSerializer(CartOrderBaseSerializer):
+    @transaction.atomic
+    def create(self, validated_data):
+        _order, payment = create_qr_order_payment(
+            validated_data.get("tableNumber"),
+            validated_data["discountPercent"],
+            validated_data["items"],
+        )
+        return payment
+
+
+class CashPaymentCartConfirmSerializer(CartOrderBaseSerializer):
+    cashReceived = serializers.FloatField(min_value=0)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if attrs["cashReceived"] <= 0:
+            raise serializers.ValidationError({"cashReceived": "Vui long nhap so tien khach dua."})
+        return attrs
+
+    @transaction.atomic
+    def create(self, validated_data):
+        order, _payment = create_cash_paid_order(
+            validated_data.get("tableNumber"),
+            validated_data["discountPercent"],
+            int(validated_data["cashReceived"]),
+            validated_data["items"],
+        )
+        return order
+
+
+class CashPaymentConfirmSerializer(serializers.Serializer):
+    cashReceived = serializers.FloatField(min_value=0)
+
+    def validate_cashReceived(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Vui long nhap so tien khach dua.")
+        return value
+
+    @transaction.atomic
+    def save(self, **kwargs):
+        order: Order = self.context["order"]
+        cash_received = int(self.validated_data["cashReceived"])
+        order, _payment = confirm_cash_payment(order, cash_received)
+        return order
+
+
+class PaymentConfirmSerializer(serializers.Serializer):
+    def save(self, **kwargs):
+        payment: OrderPayment = self.context["payment"]
+        payment = expire_payment_if_needed(payment)
+        order, _payment = confirm_bank_transfer(payment)
+        return order
+
+
+class PaymentStatusSerializer(serializers.Serializer):
+    payment = OrderPaymentSerializer()
+
+    def to_representation(self, instance):
+        payment = expire_payment_if_needed(instance)
+        return OrderPaymentSerializer(payment).data
+
+
+class OrderQrPaymentSerializer(serializers.Serializer):
+    def save(self, **kwargs):
+        order: Order = self.context["order"]
+        payment = create_or_refresh_qr_payment(order)
+        return payment

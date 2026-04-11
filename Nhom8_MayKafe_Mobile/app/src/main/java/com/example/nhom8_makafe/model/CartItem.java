@@ -7,16 +7,18 @@ public class CartItem {
     private final String category;
     private final String assetLabel;
     private final String accentColorHex;
+    private final String imageUrl;
     private int quantity;
     private String note;
 
-    public CartItem(long productId, String name, int price, String category, String assetLabel, String accentColorHex, int quantity) {
+    public CartItem(long productId, String name, int price, String category, String assetLabel, String accentColorHex, String imageUrl, int quantity) {
         this.productId = productId;
         this.name = name;
         this.price = price;
         this.category = category;
         this.assetLabel = assetLabel;
         this.accentColorHex = accentColorHex;
+        this.imageUrl = imageUrl;
         this.quantity = quantity;
         this.note = "";
     }
@@ -43,6 +45,10 @@ public class CartItem {
 
     public String getAccentColorHex() {
         return accentColorHex;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public int getQuantity() {

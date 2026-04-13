@@ -33,6 +33,9 @@ bld/
 [Oo]ut/
 [Ll]og/
 [Ll]ogs/
+venv/
+.venv/
+env/
 
 # Build results on 'Bin' directories
 **/[Bb]in/*

@@ -1,4 +1,5 @@
-﻿from collections import OrderedDict
+import calendar
+from collections import OrderedDict
 from datetime import timedelta
 
 from django.db.models import Count, Sum
@@ -7,7 +8,7 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from apps.catalog.services import build_asset_label, default_accent_color
+from apps.catalog.services import build_asset_label, default_accent_color, resolve_image_url
 from apps.common.permissions import IsAdminRole
 from apps.common.responses import success_response
 from apps.sales.models import Order, OrderItem
@@ -106,7 +107,7 @@ class ReportDashboardAPIView(APIView):
         return self._build_week_chart(current_range)
 
     def _build_week_chart(self, current_range):
-        start, end = current_range
+        start, _ = current_range
         orders = self._paid_orders_in_range(current_range)
         points = []
         weekday_labels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
@@ -121,26 +122,37 @@ class ReportDashboardAPIView(APIView):
                 }
             )
         return {
-            "title": "Doanh thu theo ngay",
-            "metaLabel": "Tuan nay",
+            "title": "Doanh thu theo ng\u00e0y",
+            "metaLabel": "Tu\u1ea7n n\u00e0y",
             "points": points,
         }
 
     def _build_month_chart(self, current_range):
         start, _ = current_range
         orders = self._paid_orders_in_range(current_range)
-        buckets = OrderedDict((f"T{i}", {"label": f"T{i}", "revenue": 0, "orders": 0}) for i in range(1, 6))
+        month_calendar = calendar.Calendar(firstweekday=0).monthdatescalendar(start.year, start.month)
+        buckets = OrderedDict(
+            (f"T{i}", {"label": f"T{i}", "revenue": 0, "orders": 0})
+            for i in range(1, len(month_calendar) + 1)
+        )
+        week_lookup = {}
+        for week_index, week_dates in enumerate(month_calendar, start=1):
+            for week_date in week_dates:
+                if week_date.month == start.month:
+                    week_lookup[week_date] = week_index
 
         for order in orders:
             local_paid_at = timezone.localtime(order.paid_at)
-            week_index = ((local_paid_at.day - 1) // 7) + 1
-            week_key = f"T{min(week_index, 5)}"
+            week_index = week_lookup.get(local_paid_at.date())
+            if week_index is None:
+                continue
+            week_key = f"T{week_index}"
             buckets[week_key]["revenue"] += int(order.total_amount)
             buckets[week_key]["orders"] += 1
 
         return {
-            "title": "Doanh thu theo tuan",
-            "metaLabel": start.strftime("Thang %m"),
+            "title": "Doanh thu theo tu\u1ea7n",
+            "metaLabel": start.strftime("Th\u00e1ng %m"),
             "points": list(buckets.values()),
         }
 
@@ -164,8 +176,8 @@ class ReportDashboardAPIView(APIView):
                 }
             )
         return {
-            "title": "Doanh thu theo thang",
-            "metaLabel": "Nam nay",
+            "title": "Doanh thu theo th\u00e1ng",
+            "metaLabel": "N\u0103m nay",
             "points": points,
         }
 
@@ -176,7 +188,7 @@ class ReportDashboardAPIView(APIView):
                 order__paid_at__gte=current_range[0],
                 order__paid_at__lte=current_range[1],
             )
-            .values("product__name", "product__category__name")
+            .values("product_id", "product__name", "product__category__name", "product__image")
             .annotate(
                 count=Sum("quantity"),
                 revenue=Sum("line_total"),
@@ -191,6 +203,7 @@ class ReportDashboardAPIView(APIView):
                 "revenue": int(item["revenue"] or 0),
                 "assetLabel": build_asset_label(item["product__name"]),
                 "accentColorHex": default_accent_color(item.get("product__category__name")),
+                "imageUrl": resolve_image_url(item.get("product__image"), request=self.request),
             }
             for item in items
         ]

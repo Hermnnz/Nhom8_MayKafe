@@ -1,6 +1,10 @@
 package com.example.nhom8_makafe.ui.main;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,9 +49,16 @@ public class LogoutConfirmOverlayFragment extends OverlayFragment {
         }
         String displayName = getArguments() == null ? "" : getArguments().getString(ARG_DISPLAY_NAME, "");
         binding.textDialogTitle.setText("\u0110\u0103ng xu\u1ea5t?");
-        binding.textDialogMessage.setText(
-                "B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n \u0111\u0103ng xu\u1ea5t kh\u1ecfi t\u00e0i kho\u1ea3n " + displayName + "?"
-        );
+        String prefix = "B\u1ea1n c\u00f3 ch\u1eafc ch\u1eafn mu\u1ed1n \u0111\u0103ng xu\u1ea5t kh\u1ecfi t\u00e0i kho\u1ea3n ";
+        SpannableStringBuilder messageBuilder = new SpannableStringBuilder(prefix);
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            int start = messageBuilder.length();
+            messageBuilder.append(displayName.trim());
+            messageBuilder.setSpan(new StyleSpan(Typeface.BOLD), start, messageBuilder.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        messageBuilder.append("?");
+        binding.textDialogMessage.setText(messageBuilder);
         binding.buttonCancel.setText("H\u1ee7y");
         binding.buttonConfirm.setText("\u0110\u0103ng xu\u1ea5t");
         binding.buttonCancel.setOnClickListener(v -> dismissAllowingStateLoss());

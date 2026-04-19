@@ -5,6 +5,7 @@ import java.util.List;
 class ApiEnvelope<T> {
     boolean success;
     String message;
+    Object errors;
     T data;
 }
 
@@ -196,6 +197,7 @@ class ReportItemDto {
     int revenue;
     String assetLabel;
     String accentColorHex;
+    String imageUrl;
 }
 
 class CategoryShareDto {

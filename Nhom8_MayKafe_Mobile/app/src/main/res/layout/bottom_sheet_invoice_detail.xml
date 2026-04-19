@@ -142,8 +142,7 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:contentDescription="In h&#243;a &#273;&#417;n"
-                    android:src="@drawable/ic_print_outline"
-                    android:tint="@color/coffee_700" />
+                    android:src="@drawable/ic_print_action" />
 
                 <TextView
                     android:layout_width="wrap_content"

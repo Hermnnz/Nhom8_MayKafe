@@ -15,4 +15,12 @@
     <string name="currency_suffix">đ</string>
     <string name="role_admin">Quản lý</string>
     <string name="role_staff">Nhân viên</string>
+    <string name="login_title">Đăng nhập</string>
+    <string name="login_header_subtitle">Hệ thống quản lý bán hàng</string>
+    <string name="login_welcome_back">Chào mừng bạn trở lại!</string>
+    <string name="login_welcome_icon">☕</string>
+    <string name="login_username_label">Tên đăng nhập</string>
+    <string name="login_username_placeholder">Nhập tên đăng nhập</string>
+    <string name="login_password_label">Mật khẩu</string>
+    <string name="login_password_placeholder">Nhập mật khẩu</string>
 </resources>

@@ -5,4 +5,8 @@
         android:endColor="@color/coffee_400"
         android:startColor="@color/coffee_900"
         android:type="linear" />
+
+    <corners
+        android:bottomLeftRadius="48dp"
+        android:bottomRightRadius="48dp" />
 </shape>

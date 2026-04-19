@@ -202,7 +202,7 @@ public class ReportsFragment extends Fragment {
     private void renderChart(List<ReportPoint> points, int maxRevenue) {
         binding.layoutChartBars.removeAllViews();
         int gap = selectedPeriod == ReportPeriod.YEAR ? dp(3) : dp(4);
-        int barWidth = getBarWidth();
+        int barWidth = getBarWidth(points.size(), gap);
         int minBarHeight = selectedPeriod == ReportPeriod.YEAR ? dp(46) : dp(54);
         int maxBarHeight = selectedPeriod == ReportPeriod.YEAR ? dp(98) : dp(110);
 
@@ -229,7 +229,7 @@ public class ReportsFragment extends Fragment {
             int barHeight = Math.max(minBarHeight, Math.round(((float) point.getRevenue() / Math.max(maxRevenue, 1)) * maxBarHeight));
             LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(barWidth, barHeight);
             bar.setLayoutParams(barParams);
-            bar.setBackground(UiUtils.roundedBackground("#DFC0A3", dp(10)));
+            bar.setBackground(UiUtils.roundedBackground(resolveChartBarColor(point, maxRevenue), dp(10)));
             barHolder.addView(bar);
 
             TextView label = new TextView(requireContext());
@@ -249,12 +249,25 @@ public class ReportsFragment extends Fragment {
         }
     }
 
-    private int getBarWidth() {
+    private String resolveChartBarColor(ReportPoint point, int maxRevenue) {
+        if (maxRevenue > 0 && point.getRevenue() == maxRevenue) {
+            return "#F5A623";
+        }
+        return "#DFC0A3";
+    }
+
+    private int getBarWidth(int pointCount, int gap) {
         if (selectedPeriod == ReportPeriod.YEAR) {
             return dp(20);
         }
         if (selectedPeriod == ReportPeriod.MONTH) {
-            return dp(62);
+            int availableWidth = binding.layoutChartBars.getWidth();
+            if (availableWidth > 0 && pointCount > 0) {
+                int totalGap = gap * Math.max(0, pointCount - 1);
+                int columnWidth = Math.max(dp(26), (availableWidth - totalGap) / pointCount);
+                return Math.max(dp(24), Math.min(dp(54), Math.round(columnWidth * 0.78f)));
+            }
+            return pointCount >= 6 ? dp(34) : dp(48);
         }
         return dp(40);
     }

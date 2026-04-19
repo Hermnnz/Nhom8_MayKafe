@@ -81,7 +81,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
             expandedInvoiceId = expanded ? null : invoice.getId();
             notifyDataSetChanged();
         };
-        holder.layoutInvoiceRoot.setOnClickListener(toggleListener);
+        holder.layoutInvoiceRoot.setOnClickListener(v -> listener.onShowDetail(invoice));
         holder.imageExpand.setOnClickListener(toggleListener);
         holder.buttonDetail.setOnClickListener(v -> listener.onShowDetail(invoice));
         holder.buttonPrint.setOnClickListener(v -> listener.onPrint(invoice));

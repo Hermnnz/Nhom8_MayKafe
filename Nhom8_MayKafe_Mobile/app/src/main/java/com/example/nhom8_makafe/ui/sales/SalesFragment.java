@@ -1,11 +1,14 @@
 package com.example.nhom8_makafe.ui.sales;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.BaseInputConnection;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -36,15 +39,19 @@ import java.util.Map;
 
 public class SalesFragment extends Fragment implements SessionManager.Observer {
     private static final String CATEGORY_ALL = "T\u1ea5t c\u1ea3";
+    private static final long SEARCH_DEBOUNCE_MS = 250L;
 
     private FragmentSalesBinding binding;
     private CategoryChipAdapter categoryAdapter;
     private ProductAdapter productAdapter;
     private final ApiRepository apiRepository = ApiRepository.getInstance();
     private final SessionManager sessionManager = SessionManager.getInstance();
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private String selectedCategory = CATEGORY_ALL;
+    private String displaySearchQuery = "";
     private String searchQuery = "";
     private int headerBaseTopPadding;
+    private Runnable pendingSearchRunnable;
 
     public static SalesFragment newInstance() {
         return new SalesFragment();
@@ -105,6 +112,7 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
         categoryAdapter = new CategoryChipAdapter(category -> {
             selectedCategory = category;
             categoryAdapter.setSelectedCategory(category);
+            cancelPendingProductSearch();
             loadProducts();
         });
         binding.recyclerCategories.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -144,8 +152,14 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
 
             @Override
             public void afterTextChanged(Editable s) {
-                searchQuery = s == null ? "" : s.toString().trim();
-                loadProducts();
+                displaySearchQuery = s == null ? "" : s.toString();
+                if (isComposingText(s)) {
+                    // Wait until IME finishes composing Vietnamese characters before searching.
+                    cancelPendingProductSearch();
+                    return;
+                }
+                searchQuery = toSearchKeyword(displaySearchQuery);
+                scheduleProductSearch();
             }
         });
     }
@@ -180,17 +194,20 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
         if (binding == null) {
             return;
         }
+        pendingSearchRunnable = null;
         binding.textEmptyProducts.setVisibility(View.GONE);
         String category = CATEGORY_ALL.equals(selectedCategory) ? null : selectedCategory;
-        apiRepository.fetchProducts(searchQuery, category, true, new ApiCallback<List<Product>>() {
+        apiRepository.fetchProducts(emptyToNull(searchQuery), category, true, new ApiCallback<List<Product>>() {
             @Override
             public void onSuccess(List<Product> data) {
                 if (!isAdded() || binding == null) {
                     return;
                 }
-                productAdapter.submitList(data);
+                List<Product> products = data == null ? new ArrayList<>() : data;
+                productAdapter.submitList(products);
                 productAdapter.setQuantityMap(buildQuantityMap(sessionManager.getCartItems()));
-                binding.textEmptyProducts.setVisibility(data.isEmpty() ? View.VISIBLE : View.GONE);
+                binding.textEmptyProducts.setText("Kh\u00f4ng t\u00ecm th\u1ea5y m\u00f3n ph\u00f9 h\u1ee3p");
+                binding.textEmptyProducts.setVisibility(products.isEmpty() ? View.VISIBLE : View.GONE);
             }
 
             @Override
@@ -236,6 +253,36 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
         }
     }
 
+    private void scheduleProductSearch() {
+        cancelPendingProductSearch();
+        pendingSearchRunnable = this::loadProducts;
+        searchHandler.postDelayed(pendingSearchRunnable, SEARCH_DEBOUNCE_MS);
+    }
+
+    private void cancelPendingProductSearch() {
+        if (pendingSearchRunnable != null) {
+            searchHandler.removeCallbacks(pendingSearchRunnable);
+            pendingSearchRunnable = null;
+        }
+    }
+
+    private boolean isComposingText(@Nullable Editable text) {
+        return text != null
+                && BaseInputConnection.getComposingSpanStart(text) != -1
+                && BaseInputConnection.getComposingSpanEnd(text) != -1;
+    }
+
+    @Nullable
+    private String emptyToNull(String value) {
+        String keyword = value == null ? "" : value.trim();
+        return keyword.isEmpty() ? null : keyword;
+    }
+
+    @NonNull
+    private String toSearchKeyword(@Nullable String displayValue) {
+        return displayValue == null ? "" : displayValue.trim();
+    }
+
     @Override
     public void onSessionChanged(User user) {
         if (user != null && binding != null) {
@@ -256,6 +303,7 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
     public void onResume() {
         super.onResume();
         if (binding != null) {
+            cancelPendingProductSearch();
             loadProducts();
         }
     }
@@ -263,6 +311,7 @@ public class SalesFragment extends Fragment implements SessionManager.Observer {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        cancelPendingProductSearch();
         sessionManager.removeObserver(this);
         binding = null;
     }

@@ -23,9 +23,12 @@ import com.example.nhom8_makafe.model.User;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import retrofit2.Call;
@@ -61,7 +64,7 @@ public class ApiRepository {
 
             @Override
             public void onError(String message) {
-                callback.onError(message);
+                callback.onError(normalizeLoginErrorMessage(message));
             }
         });
     }
@@ -574,7 +577,8 @@ public class ApiRepository {
                         itemDto.count,
                         itemDto.revenue,
                         itemDto.assetLabel == null ? "MK" : itemDto.assetLabel,
-                        itemDto.accentColorHex == null ? "#6B3F2A" : itemDto.accentColorHex
+                        itemDto.accentColorHex == null ? "#6B3F2A" : itemDto.accentColorHex,
+                        itemDto.imageUrl == null ? "" : itemDto.imageUrl
                 ));
             }
         }
@@ -670,7 +674,10 @@ public class ApiRepository {
                     return;
                 }
                 if (!body.success) {
-                    callback.onError(body.message == null ? "Yêu cầu thất bại." : body.message);
+                    String detailMessage = extractErrorMessage(body.errors);
+                    callback.onError(detailMessage == null
+                            ? (body.message == null ? "Yêu cầu thất bại." : body.message)
+                            : detailMessage);
                     return;
                 }
                 callback.onSuccess(body.data);
@@ -690,6 +697,10 @@ public class ApiRepository {
                 if (raw != null && !raw.trim().isEmpty()) {
                     try {
                         JSONObject jsonObject = new JSONObject(raw);
+                        String detailMessage = extractErrorMessage(jsonObject.opt("errors"));
+                        if (detailMessage != null && !detailMessage.trim().isEmpty()) {
+                            return detailMessage;
+                        }
                         String message = jsonObject.optString("message", null);
                         if (message != null && !message.trim().isEmpty()) {
                             return message;
@@ -702,6 +713,72 @@ public class ApiRepository {
         } catch (IOException ignored) {
         }
         return "Kết nối máy chủ thất bại (" + response.code() + ").";
+    }
+
+    private String extractErrorMessage(Object errors) {
+        if (errors == null || errors == JSONObject.NULL) {
+            return null;
+        }
+        if (errors instanceof String) {
+            String value = ((String) errors).trim();
+            return value.isEmpty() ? null : value;
+        }
+        if (errors instanceof JSONArray) {
+            JSONArray array = (JSONArray) errors;
+            for (int index = 0; index < array.length(); index++) {
+                String message = extractErrorMessage(array.opt(index));
+                if (message != null) {
+                    return message;
+                }
+            }
+            return null;
+        }
+        if (errors instanceof JSONObject) {
+            JSONObject object = (JSONObject) errors;
+            Iterator<String> keys = object.keys();
+            while (keys.hasNext()) {
+                String message = extractErrorMessage(object.opt(keys.next()));
+                if (message != null) {
+                    return message;
+                }
+            }
+            return null;
+        }
+        if (errors instanceof List<?>) {
+            for (Object item : (List<?>) errors) {
+                String message = extractErrorMessage(item);
+                if (message != null) {
+                    return message;
+                }
+            }
+            return null;
+        }
+        if (errors instanceof Map<?, ?>) {
+            for (Object value : ((Map<?, ?>) errors).values()) {
+                String message = extractErrorMessage(value);
+                if (message != null) {
+                    return message;
+                }
+            }
+            return null;
+        }
+        String fallback = String.valueOf(errors).trim();
+        return fallback.isEmpty() ? null : fallback;
+    }
+
+    private String normalizeLoginErrorMessage(String message) {
+        if (message == null) {
+            return null;
+        }
+        String normalized = message.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("ten dang nhap hoac mat khau khong dung")
+                || normalized.contains("sai thong tin dang nhap")
+                || normalized.contains("validation error")
+                || normalized.contains("invalid credentials")
+                || normalized.contains("unauthorized")) {
+            return "Sai thông tin đăng nhập";
+        }
+        return message;
     }
 
     private String buildFailureMessage(Throwable throwable) {

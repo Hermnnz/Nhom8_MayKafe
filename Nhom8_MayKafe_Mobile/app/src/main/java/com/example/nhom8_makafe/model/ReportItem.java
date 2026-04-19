@@ -6,13 +6,15 @@ public class ReportItem {
     private final int revenue;
     private final String assetLabel;
     private final String accentColorHex;
+    private final String imageUrl;
 
-    public ReportItem(String name, int count, int revenue, String assetLabel, String accentColorHex) {
+    public ReportItem(String name, int count, int revenue, String assetLabel, String accentColorHex, String imageUrl) {
         this.name = name;
         this.count = count;
         this.revenue = revenue;
         this.assetLabel = assetLabel;
         this.accentColorHex = accentColorHex;
+        this.imageUrl = imageUrl;
     }
 
     public String getName() {
@@ -33,5 +35,9 @@ public class ReportItem {
 
     public String getAccentColorHex() {
         return accentColorHex;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

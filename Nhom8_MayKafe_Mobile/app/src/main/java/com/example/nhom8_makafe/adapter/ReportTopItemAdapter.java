@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.model.ReportItem;
 import com.example.nhom8_makafe.util.FormatUtils;
+import com.example.nhom8_makafe.util.ImageLoader;
 import com.example.nhom8_makafe.util.UiUtils;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class ReportTopItemAdapter extends RecyclerView.Adapter<ReportTopItemAdap
         int maxCount = items.isEmpty() ? 1 : items.get(0).getCount();
         float ratio = maxCount == 0 ? 0f : (float) item.getCount() / maxCount;
 
-        UiUtils.bindThumbnail(holder.textThumbnail, holder.textThumbnail, item.getAssetLabel(), item.getAccentColorHex());
+        bindTopItemImage(holder, item);
         holder.textName.setText(item.getName());
         holder.textSubtitle.setText(item.getCount() + " ly");
         holder.textRevenue.setText(FormatUtils.formatCurrency(item.getRevenue()));
@@ -69,12 +71,32 @@ public class ReportTopItemAdapter extends RecyclerView.Adapter<ReportTopItemAdap
         });
     }
 
+    private void bindTopItemImage(@NonNull ViewHolder holder, @NonNull ReportItem item) {
+        String imageUrl = item.getImageUrl();
+        boolean hasImage = imageUrl != null && !imageUrl.trim().isEmpty();
+
+        if (hasImage) {
+            holder.imageProduct.setVisibility(View.VISIBLE);
+            holder.textThumbnail.setVisibility(View.GONE);
+            holder.layoutThumbnail.setBackground(null);
+            ImageLoader.load(holder.imageProduct, imageUrl);
+            return;
+        }
+
+        holder.imageProduct.setImageDrawable(null);
+        holder.imageProduct.setVisibility(View.GONE);
+        holder.textThumbnail.setVisibility(View.VISIBLE);
+        UiUtils.bindThumbnail(holder.layoutThumbnail, holder.textThumbnail, item.getAssetLabel(), item.getAccentColorHex());
+    }
+
     @Override
     public int getItemCount() {
         return items.size();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+        private final View layoutThumbnail;
+        private final ImageView imageProduct;
         private final TextView textThumbnail;
         private final TextView textRankBadge;
         private final TextView textName;
@@ -85,6 +107,8 @@ public class ReportTopItemAdapter extends RecyclerView.Adapter<ReportTopItemAdap
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+            layoutThumbnail = itemView.findViewById(R.id.layout_thumbnail);
+            imageProduct = itemView.findViewById(R.id.image_product);
             textThumbnail = itemView.findViewById(R.id.text_thumbnail);
             textRankBadge = itemView.findViewById(R.id.text_rank_badge);
             textName = itemView.findViewById(R.id.text_name);

@@ -24,6 +24,10 @@ class LoginPayloadDto {
     UserDto user;
 }
 
+class LoginBrandingDto {
+    String loginAvatarUrl;
+}
+
 class UserDto {
     String username;
     String displayName;
@@ -59,6 +63,12 @@ class ProductWriteRequest {
     String assetLabel;
     String accentColorHex;
     String imageUrl;
+}
+
+class ProductImageUploadDto {
+    String image;
+    String imageUrl;
+    String imagePath;
 }
 
 class ToggleAvailabilityRequest {
@@ -124,6 +134,12 @@ class CheckoutRequest {
 }
 
 class PaymentInitRequest {
+    String tableNumber;
+    int discountPercent;
+    List<CheckoutItemRequest> items;
+}
+
+class PendingOrderRequest {
     String tableNumber;
     int discountPercent;
     List<CheckoutItemRequest> items;

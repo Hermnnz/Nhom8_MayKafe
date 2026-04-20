@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,7 +44,7 @@ public class MenuDeleteConfirmOverlayFragment extends OverlayFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DialogMenuDeleteConfirmBinding.inflate(inflater, container, false);
-        return createTopDialogOverlay(binding.getRoot(), 0.86f, 440, 48, true);
+        return createCenteredDialogOverlay(binding.getRoot(), 0.88f, 420, true);
     }
 
     @Override
@@ -78,7 +79,13 @@ public class MenuDeleteConfirmOverlayFragment extends OverlayFragment {
                         if (!isAdded()) {
                             return;
                         }
-                        dismissAllowingStateLoss();
+                        Toast.makeText(
+                                requireContext(),
+                                message == null || message.trim().isEmpty()
+                                        ? "Kh\u00f4ng th\u1ec3 x\u00f3a m\u00f3n n\u00e0y."
+                                        : message,
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
                 }));
     }

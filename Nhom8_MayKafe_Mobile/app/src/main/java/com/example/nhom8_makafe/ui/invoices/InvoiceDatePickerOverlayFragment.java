@@ -36,7 +36,7 @@ public class InvoiceDatePickerOverlayFragment extends OverlayFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = DialogInvoiceDatePickerBinding.inflate(inflater, container, false);
-        return createTopDialogOverlay(binding.getRoot(), 0.9f, 440, 32, true);
+        return createCenteredDialogOverlay(binding.getRoot(), 0.9f, 440, true);
     }
 
     @Override

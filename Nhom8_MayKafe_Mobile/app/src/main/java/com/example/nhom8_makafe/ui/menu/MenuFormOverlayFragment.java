@@ -1,15 +1,21 @@
 package com.example.nhom8_makafe.ui.menu;
 
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.data.api.ApiCallback;
 import com.example.nhom8_makafe.data.api.ApiRepository;
 import com.example.nhom8_makafe.databinding.BottomSheetMenuFormBinding;
@@ -19,7 +25,6 @@ import com.example.nhom8_makafe.ui.overlay.OverlayFragment;
 import com.example.nhom8_makafe.util.ImageLoader;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class MenuFormOverlayFragment extends OverlayFragment {
@@ -35,10 +40,16 @@ public class MenuFormOverlayFragment extends OverlayFragment {
     private static final String ARG_CATEGORIES = "categories";
 
     private final ApiRepository apiRepository = ApiRepository.getInstance();
+    private final ActivityResultLauncher<String> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), this::handlePickedImage);
     @Nullable
     private BottomSheetMenuFormBinding binding;
     @Nullable
     private IncludeBottomSheetHeaderBinding headerBinding;
+    @Nullable
+    private Uri selectedImageUri;
+    @Nullable
+    private String selectedImageName;
 
     public static MenuFormOverlayFragment newCreateInstance(@NonNull ArrayList<String> categories) {
         MenuFormOverlayFragment fragment = new MenuFormOverlayFragment();
@@ -84,7 +95,12 @@ public class MenuFormOverlayFragment extends OverlayFragment {
                 categories.addAll(values);
             }
         }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, categories);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                requireContext(),
+                R.layout.item_menu_dropdown_option,
+                categories
+        );
+        arrayAdapter.setDropDownViewResource(R.layout.item_menu_dropdown_option);
         binding.editCategory.setAdapter(arrayAdapter);
 
         boolean isEditing = isEditing();
@@ -104,14 +120,33 @@ public class MenuFormOverlayFragment extends OverlayFragment {
         }
 
         loadPreview();
+        renderSelectedImageState();
 
         if (headerBinding != null) {
             headerBinding.buttonCloseSheet.setOnClickListener(v -> dismissAllowingStateLoss());
         }
         binding.buttonPreviewImage.setOnClickListener(v -> loadPreview());
+        binding.inputImageUrl.setEndIconOnClickListener(v -> imagePickerLauncher.launch("image/*"));
         binding.editCategory.setOnItemClickListener((parent, itemView, position, id) -> {
             if (valueOf(binding.editImageUrl.getText()).isEmpty()) {
                 loadPreview();
+            }
+        });
+        binding.editImageUrl.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (selectedImageUri == null) {
+                    return;
+                }
+                clearSelectedImage();
             }
         });
         binding.buttonSubmitMenu.setOnClickListener(v -> submitMenuForm());
@@ -129,6 +164,7 @@ public class MenuFormOverlayFragment extends OverlayFragment {
         binding.inputName.setError(null);
         binding.inputPrice.setError(null);
         binding.inputCategory.setError(null);
+        binding.inputImageUrl.setError(null);
 
         boolean hasError = false;
         if (name.isEmpty()) {
@@ -173,6 +209,10 @@ public class MenuFormOverlayFragment extends OverlayFragment {
                 resolveImageUrl(imageUrl, category)
         );
 
+        submitProduct(target);
+    }
+
+    private void submitProduct(@NonNull Product target) {
         ApiCallback<Product> callback = new ApiCallback<Product>() {
             @Override
             public void onSuccess(Product data) {
@@ -192,6 +232,29 @@ public class MenuFormOverlayFragment extends OverlayFragment {
             }
         };
 
+        if (selectedImageUri != null) {
+            apiRepository.uploadProductImage(requireContext(), selectedImageUri, new ApiCallback<String>() {
+                @Override
+                public void onSuccess(String data) {
+                    target.setImageUrl(data);
+                    saveProduct(target, callback);
+                }
+
+                @Override
+                public void onError(String message) {
+                    if (!isAdded() || binding == null) {
+                        return;
+                    }
+                    binding.inputImageUrl.setError(message);
+                }
+            });
+            return;
+        }
+
+        saveProduct(target, callback);
+    }
+
+    private void saveProduct(@NonNull Product target, @NonNull ApiCallback<Product> callback) {
         if (isEditing()) {
             apiRepository.updateProduct(target, callback);
         } else {
@@ -213,12 +276,71 @@ public class MenuFormOverlayFragment extends OverlayFragment {
         if (binding == null) {
             return;
         }
+        if (selectedImageUri != null) {
+            ImageLoader.load(
+                    binding.imagePreview,
+                    selectedImageUri,
+                    com.example.nhom8_makafe.R.drawable.bg_menu_preview_placeholder
+            );
+            return;
+        }
         String category = valueOf(binding.editCategory.getText());
         String imageUrl = valueOf(binding.editImageUrl.getText());
         if (imageUrl.isEmpty()) {
             imageUrl = argString(ARG_IMAGE_URL);
         }
-        ImageLoader.load(binding.imagePreview, resolveImageUrl(imageUrl, category));
+        ImageLoader.load(
+                binding.imagePreview,
+                resolveImageUrl(imageUrl, category),
+                com.example.nhom8_makafe.R.drawable.bg_menu_preview_placeholder
+        );
+    }
+
+    private void handlePickedImage(@Nullable Uri imageUri) {
+        if (imageUri == null || binding == null) {
+            return;
+        }
+        selectedImageUri = imageUri;
+        selectedImageName = resolveDisplayName(imageUri);
+        binding.inputImageUrl.setError(null);
+        renderSelectedImageState();
+        loadPreview();
+    }
+
+    private void clearSelectedImage() {
+        selectedImageUri = null;
+        selectedImageName = null;
+        renderSelectedImageState();
+        loadPreview();
+    }
+
+    private void renderSelectedImageState() {
+        if (binding == null) {
+            return;
+        }
+        boolean hasSelectedImage = selectedImageUri != null;
+        binding.textSelectedImageFile.setVisibility(hasSelectedImage ? View.VISIBLE : View.GONE);
+        if (hasSelectedImage) {
+            binding.textSelectedImageFile.setText("\u0110\u00e3 ch\u1ecdn t\u1ec7p \u1ea3nh: " + selectedImageName);
+        } else {
+            binding.textSelectedImageFile.setText("");
+        }
+    }
+
+    private String resolveDisplayName(@NonNull Uri imageUri) {
+        try (Cursor cursor = requireContext().getContentResolver().query(imageUri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) {
+                    String value = cursor.getString(index);
+                    if (value != null && !value.trim().isEmpty()) {
+                        return value.trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return "anh-mon-moi.jpg";
     }
 
     private String resolveImageUrl(String imageUrl, String category) {
@@ -283,6 +405,8 @@ public class MenuFormOverlayFragment extends OverlayFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        selectedImageUri = null;
+        selectedImageName = null;
         headerBinding = null;
         binding = null;
     }

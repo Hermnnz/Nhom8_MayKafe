@@ -1,6 +1,8 @@
 package com.example.nhom8_makafe.ui.menu;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -30,16 +32,20 @@ import java.util.List;
 
 public class MenuManagementFragment extends Fragment {
     private static final String CATEGORY_ALL = "T\u1ea5t c\u1ea3";
+    private static final long SEARCH_DEBOUNCE_MS = 250L;
 
     private FragmentMenuManagementBinding binding;
     private final ApiRepository apiRepository = ApiRepository.getInstance();
     private final SessionManager sessionManager = SessionManager.getInstance();
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private CategoryChipAdapter categoryAdapter;
     private MenuManagementAdapter menuAdapter;
     private String selectedCategory = CATEGORY_ALL;
     private String searchQuery = "";
     private int baseHeaderTopPadding;
     private List<String> remoteCategories = new ArrayList<>();
+    @Nullable
+    private Runnable pendingSearchRunnable;
 
     public static MenuManagementFragment newInstance() {
         return new MenuManagementFragment();
@@ -77,13 +83,14 @@ public class MenuManagementFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 searchQuery = s == null ? "" : s.toString().trim();
-                loadProducts();
+                scheduleProductSearch();
             }
         });
 
         categoryAdapter = new CategoryChipAdapter(category -> {
             selectedCategory = category;
             categoryAdapter.setSelectedCategory(category);
+            cancelPendingProductSearch();
             loadProducts();
         });
         binding.recyclerCategories.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -150,6 +157,7 @@ public class MenuManagementFragment extends Fragment {
                     if (!result.getBoolean(MenuOverlayContract.RESULT_REFRESH, false)) {
                         return;
                     }
+                    cancelPendingProductSearch();
                     loadProducts();
                     refreshSummary();
                 }
@@ -188,6 +196,7 @@ public class MenuManagementFragment extends Fragment {
         if (binding == null) {
             return;
         }
+        pendingSearchRunnable = null;
         String category = CATEGORY_ALL.equals(selectedCategory) ? null : selectedCategory;
         apiRepository.fetchProducts(searchQuery, category, null, new ApiCallback<List<Product>>() {
             @Override
@@ -206,6 +215,20 @@ public class MenuManagementFragment extends Fragment {
                 menuAdapter.submitList(new ArrayList<>());
             }
         });
+    }
+
+    private void scheduleProductSearch() {
+        cancelPendingProductSearch();
+        pendingSearchRunnable = this::loadProducts;
+        searchHandler.postDelayed(pendingSearchRunnable, SEARCH_DEBOUNCE_MS);
+    }
+
+    private void cancelPendingProductSearch() {
+        if (pendingSearchRunnable == null) {
+            return;
+        }
+        searchHandler.removeCallbacks(pendingSearchRunnable);
+        pendingSearchRunnable = null;
     }
 
     private void refreshSummary() {
@@ -271,6 +294,7 @@ public class MenuManagementFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (binding != null) {
+            cancelPendingProductSearch();
             loadProducts();
             refreshSummary();
         }
@@ -279,6 +303,7 @@ public class MenuManagementFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        cancelPendingProductSearch();
         binding = null;
     }
 }

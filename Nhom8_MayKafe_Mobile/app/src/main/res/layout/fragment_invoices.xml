@@ -44,7 +44,7 @@
                         android:layout_gravity="center"
                         android:contentDescription="Hóa đơn"
                         android:src="@drawable/ic_invoice_header"
-                        android:tint="@color/coffee_700" />
+                        app:tint="@color/coffee_700" />
                 </FrameLayout>
 
                 <TextView
@@ -83,19 +83,19 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="19dp"
-                            android:layout_height="19dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:contentDescription="Đã thanh toán"
                             android:src="@drawable/ic_stat_paid"
-                            android:tint="@color/success" />
+                            app:tint="@color/success" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="4dp"
-                            android:text="Đã TT"
+                            android:text="Đã thanh toán"
                             android:textColor="@color/success"
-                            android:textSize="10sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -132,11 +132,11 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="19dp"
-                            android:layout_height="19dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             android:contentDescription="Đã hủy"
                             android:src="@drawable/ic_stat_cancelled"
-                            android:tint="@color/danger" />
+                            app:tint="@color/danger" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -144,7 +144,7 @@
                             android:layout_marginStart="4dp"
                             android:text="Đã hủy"
                             android:textColor="@color/danger"
-                            android:textSize="10sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -181,11 +181,11 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="14dp"
-                            android:layout_height="14dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
                             android:contentDescription="Doanh thu"
                             android:src="@drawable/ic_stat_revenue"
-                            android:tint="@color/coffee_950" />
+                            app:tint="@color/coffee_950" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -194,7 +194,7 @@
                             android:maxLines="1"
                             android:text="Doanh thu"
                             android:textColor="@color/coffee_950"
-                            android:textSize="11sp"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
@@ -231,7 +231,7 @@
                     android:layout_height="18dp"
                     android:contentDescription="Tìm kiếm"
                     android:src="@drawable/ic_search_outline"
-                    android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
 
                 <androidx.appcompat.widget.AppCompatEditText
                     android:id="@+id/edit_search_invoice"
@@ -252,24 +252,32 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/layout_date_field"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_outline_pill"
-                android:clickable="true"
-                android:focusable="true"
+                android:baselineAligned="false"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingLeft="14dp"
-                android:paddingRight="14dp">
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/layout_date_field"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_outline_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp">
 
                 <ImageView
                     android:layout_width="18dp"
                     android:layout_height="18dp"
                     android:contentDescription="Ngày"
                     android:src="@drawable/ic_calendar_outline"
-                    android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
 
                 <TextView
                     android:id="@+id/text_date_value"
@@ -278,8 +286,9 @@
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:text="dd/mm/yyyy"
-                    android:textColor="@color/coffee_950"
-                    android:textSize="15sp" />
+                    android:textColor="@color/coffee_300"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/image_date_action"
@@ -287,7 +296,25 @@
                     android:layout_height="18dp"
                     android:contentDescription="Chọn ngày"
                     android:src="@drawable/ic_calendar_outline"
-                    android:tint="@color/coffee_950" />
+                    app:tint="@color/coffee_950" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_clear_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_invoice_date_clear_button"
+                    android:gravity="center"
+                    android:minWidth="0dp"
+                    android:paddingLeft="16dp"
+                    android:paddingRight="16dp"
+                    android:text="&#215; X&#243;a"
+                    android:textAllCaps="false"
+                    android:textColor="@color/coffee_700"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout

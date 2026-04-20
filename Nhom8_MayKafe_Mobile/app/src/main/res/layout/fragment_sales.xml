@@ -34,7 +34,7 @@
                 android:text="&#9749;"
                 android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="18sp" />
+                android:textSize="19sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -47,7 +47,7 @@
                     android:layout_height="wrap_content"
                     android:text="MayKafe"
                     android:textColor="@color/coffee_950"
-                    android:textSize="18sp"
+                    android:textSize="19sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -57,7 +57,7 @@
                     android:letterSpacing="0.08"
                     android:text="COFFEE &amp; MORE"
                     android:textColor="@color/coffee_400"
-                    android:textSize="10sp"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </LinearLayout>
@@ -89,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/coffee_500"
-                    android:textSize="12sp" />
+                    android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/text_display_name"
@@ -97,7 +97,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="1dp"
                     android:textColor="@color/coffee_950"
-                    android:textSize="16sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -111,7 +111,7 @@
                     android:paddingRight="10dp"
                     android:paddingBottom="4dp"
                     android:textColor="@color/coffee_700"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -120,15 +120,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:clickable="true"
-                android:clipChildren="false"
-                android:clipToPadding="false"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:paddingTop="8dp"
                 android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="38dp"
+                    android:layout_marginTop="8dp"
                     android:background="@drawable/bg_sales_cart_chip"
                     android:gravity="center_vertical"
                     android:minWidth="118dp"
@@ -151,21 +151,27 @@
                         android:gravity="center_vertical"
                         android:maxLines="1"
                         android:textColor="@color/white"
-                        android:textSize="14sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
+                <!-- badge is a sibling overlay inside the FrameLayout; it stays within
+                     FrameLayout bounds (no negative margins) while visually overlapping
+                     the pill because the pill is pushed down by marginTop above -->
                 <TextView
                     android:id="@+id/text_cart_badge"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/cart_badge_size"
+                    android:minWidth="@dimen/cart_badge_size"
                     android:layout_gravity="top|end"
-                    android:layout_marginTop="-2dp"
-                    android:layout_marginEnd="-2dp"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginEnd="0dp"
                     android:background="@drawable/bg_cart_badge"
                     android:gravity="center"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp"
                     android:textColor="@color/white"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     android:textStyle="bold" />
             </FrameLayout>
         </LinearLayout>
@@ -219,7 +225,7 @@
         android:layout_height="wrap_content"
         android:text="Kh&#244;ng t&#236;m th&#7845;y m&#243;n ph&#249; h&#7907;p"
         android:textColor="@color/coffee_500"
-        android:textSize="14sp"
+        android:textSize="15sp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/recycler_products"
         app:layout_constraintEnd_toEndOf="@id/recycler_products"

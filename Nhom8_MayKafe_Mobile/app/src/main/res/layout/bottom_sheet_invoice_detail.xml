@@ -94,7 +94,7 @@
                         android:id="@+id/text_total_value"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/coffee_700"
+                        android:textColor="@color/coffee_950"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                 </LinearLayout>

@@ -5,9 +5,11 @@ from rest_framework import serializers
 from apps.catalog.services import build_asset_label, default_accent_color
 from apps.sales.models import Order, OrderItem, OrderPayment
 from apps.sales.services import (
+    cancel_order,
     confirm_bank_transfer,
     confirm_cash_payment,
     create_cash_paid_order,
+    create_pending_order,
     create_or_refresh_qr_payment,
     create_qr_order_payment,
     expire_payment_if_needed,
@@ -203,6 +205,16 @@ class QrPaymentInitSerializer(CartOrderBaseSerializer):
         return payment
 
 
+class PendingOrderCreateSerializer(CartOrderBaseSerializer):
+    @transaction.atomic
+    def create(self, validated_data):
+        return create_pending_order(
+            validated_data.get("tableNumber"),
+            validated_data["discountPercent"],
+            validated_data["items"],
+        )
+
+
 class CashPaymentCartConfirmSerializer(CartOrderBaseSerializer):
     cashReceived = serializers.FloatField(min_value=0)
 
@@ -260,3 +272,9 @@ class OrderQrPaymentSerializer(serializers.Serializer):
         order: Order = self.context["order"]
         payment = create_or_refresh_qr_payment(order)
         return payment
+
+
+class OrderCancelSerializer(serializers.Serializer):
+    def save(self, **kwargs):
+        order: Order = self.context["order"]
+        return cancel_order(order)

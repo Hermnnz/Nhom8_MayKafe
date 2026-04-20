@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_print_feedback"
@@ -22,7 +23,7 @@
             android:layout_gravity="center"
             android:contentDescription="Thành công"
             android:src="@drawable/ic_check_small"
-            android:tint="@color/white" />
+            app:tint="@color/white" />
     </FrameLayout>
 
     <TextView
@@ -42,5 +43,5 @@
         android:layout_height="18dp"
         android:contentDescription="Đóng"
         android:src="@drawable/ic_close_small"
-        android:tint="@color/coffee_200" />
+            app:tint="@color/coffee_200" />
 </LinearLayout>

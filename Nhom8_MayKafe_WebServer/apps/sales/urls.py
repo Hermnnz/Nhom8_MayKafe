@@ -9,6 +9,7 @@ from apps.sales.views import (
     OrderViewSet,
     PaymentConfirmAPIView,
     PaymentStatusAPIView,
+    PendingOrderAPIView,
     QrPaymentInitAPIView,
 )
 
@@ -18,6 +19,7 @@ router.register("", OrderViewSet, basename="order")
 
 urlpatterns = [
     path("checkout/", CheckoutAPIView.as_view(), name="order-checkout"),
+    path("pending/", PendingOrderAPIView.as_view(), name="order-pending"),
     path("payment/qr/", QrPaymentInitAPIView.as_view(), name="order-payment-qr-init"),
     path("payment/cash/confirm/", CashPaymentCartConfirmAPIView.as_view(), name="order-payment-cash-confirm"),
     path("<int:order_id>/payment/qr/", OrderQrPaymentAPIView.as_view(), name="order-payment-qr"),

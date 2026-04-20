@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -184,7 +185,7 @@ public class ReportsFragment extends Fragment {
     private void bindKpi(TextView valueView, TextView trendView, String value, String trend, boolean positive) {
         valueView.setText(value);
         trendView.setText((positive ? "\u2197 " : "\u2198 ") + trend);
-        trendView.setTextColor(requireContext().getColor(positive ? R.color.success : R.color.danger));
+        trendView.setTextColor(resolveColor(positive ? R.color.success : R.color.danger));
     }
 
     private void applyChartHeight() {
@@ -239,7 +240,7 @@ public class ReportsFragment extends Fragment {
             label.setMaxLines(1);
             label.setIncludeFontPadding(false);
             label.setPadding(0, dp(7), 0, 0);
-            label.setTextColor(requireContext().getColor(R.color.coffee_500));
+            label.setTextColor(resolveColor(R.color.coffee_500));
             label.setTextSize(TypedValue.COMPLEX_UNIT_SP, selectedPeriod == ReportPeriod.YEAR ? 9.5f : 12f);
 
             column.addView(spacer);
@@ -280,7 +281,7 @@ public class ReportsFragment extends Fragment {
 
     private void bindPeriodButton(com.google.android.material.button.MaterialButton button, boolean selected) {
         button.setBackgroundResource(selected ? R.drawable.bg_report_segment_active : android.R.color.transparent);
-        button.setTextColor(requireContext().getColor(selected ? R.color.white : R.color.coffee_500));
+        button.setTextColor(resolveColor(selected ? R.color.white : R.color.coffee_500));
     }
 
     private int dp(int value) {
@@ -289,6 +290,10 @@ public class ReportsFragment extends Fragment {
                 value,
                 getResources().getDisplayMetrics()
         ));
+    }
+
+    private int resolveColor(int colorResId) {
+        return ContextCompat.getColor(requireContext(), colorResId);
     }
 
     @Override

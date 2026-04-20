@@ -26,7 +26,7 @@
             android:layout_weight="1"
             android:text="&#272;&#417;n h&#224;ng"
             android:textColor="@color/coffee_950"
-            android:textSize="19sp"
+            android:textSize="20sp"
             android:textStyle="bold" />
 
         <ImageButton
@@ -37,7 +37,7 @@
             android:contentDescription="Dong"
             android:padding="6dp"
             android:src="@drawable/ic_close_small"
-            android:tint="@color/coffee_400" />
+            app:tint="@color/coffee_400" />
     </LinearLayout>
 
     <View
@@ -83,7 +83,7 @@
                     android:layout_height="18dp"
                     android:contentDescription="Giam gia"
                     android:src="@drawable/ic_discount_tag"
-                    android:tint="@color/coffee_400"
+                    app:tint="@color/coffee_400"
                     android:translationY="1dp" />
 
                 <TextView
@@ -92,7 +92,7 @@
                     android:layout_marginStart="10dp"
                     android:text="Gi&#7843;m gi&#225;"
                     android:textColor="@color/coffee_500"
-                    android:textSize="12sp"
+                    android:textSize="13sp"
                     android:textStyle="bold" />
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -107,7 +107,7 @@
                     android:inputType="number"
                     android:maxLines="1"
                     android:textColor="@color/coffee_400"
-                    android:textSize="16sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -126,7 +126,7 @@
                         android:padding="0dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_chevron_up"
-                        android:tint="@color/coffee_400" />
+                        app:tint="@color/coffee_400" />
 
                     <ImageButton
                         android:id="@+id/button_discount_down"
@@ -138,7 +138,7 @@
                         android:padding="0dp"
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_chevron_down"
-                        android:tint="@color/coffee_400" />
+                        app:tint="@color/coffee_400" />
                 </LinearLayout>
 
                 <TextView
@@ -147,7 +147,7 @@
                     android:layout_marginStart="8dp"
                     android:text="%"
                     android:textColor="@color/coffee_400"
-                    android:textSize="16sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -164,14 +164,14 @@
                     android:layout_weight="1"
                     android:text="T&#7841;m t&#237;nh"
                     android:textColor="@color/coffee_500"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/text_subtotal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/coffee_500"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -189,14 +189,14 @@
                     android:layout_weight="1"
                     android:text="Gi&#7843;m gi&#225;"
                     android:textColor="@color/success"
-                    android:textSize="14sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/text_discount_amount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/success"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -213,7 +213,7 @@
                     android:layout_weight="1"
                     android:text="T&#7893;ng c&#7897;ng"
                     android:textColor="@color/coffee_950"
-                    android:textSize="18sp"
+                    android:textSize="19sp"
                     android:textStyle="bold" />
 
                 <TextView
@@ -221,7 +221,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/coffee_700"
-                    android:textSize="20sp"
+                    android:textSize="21sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -236,7 +236,7 @@
                 android:text="X&#225;c nh&#7853;n &#273;&#417;n h&#224;ng"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 app:backgroundTint="@null" />
         </LinearLayout>

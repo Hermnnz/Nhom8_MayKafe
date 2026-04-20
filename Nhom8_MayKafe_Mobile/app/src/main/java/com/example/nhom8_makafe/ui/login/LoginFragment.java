@@ -16,6 +16,7 @@ import com.example.nhom8_makafe.data.api.ApiCallback;
 import com.example.nhom8_makafe.data.api.ApiRepository;
 import com.example.nhom8_makafe.databinding.FragmentLoginBinding;
 import com.example.nhom8_makafe.model.User;
+import com.example.nhom8_makafe.util.ImageLoader;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
@@ -36,7 +37,43 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        bindLoginAvatar(null);
+        loadLoginBrandingAvatar();
         binding.buttonLogin.setOnClickListener(v -> submitLogin());
+    }
+
+    private void loadLoginBrandingAvatar() {
+        apiRepository.fetchLoginBranding(new ApiCallback<String>() {
+            @Override
+            public void onSuccess(String data) {
+                if (!isAdded() || binding == null) {
+                    return;
+                }
+                bindLoginAvatar(data);
+            }
+
+            @Override
+            public void onError(String message) {
+                if (!isAdded() || binding == null) {
+                    return;
+                }
+                bindLoginAvatar(null);
+            }
+        });
+    }
+
+    private void bindLoginAvatar(@Nullable String imageUrl) {
+        if (binding == null) {
+            return;
+        }
+        boolean hasImage = !TextUtils.isEmpty(imageUrl);
+        binding.imageLoginAvatar.setVisibility(hasImage ? View.VISIBLE : View.GONE);
+        binding.textLoginAvatarFallback.setVisibility(View.VISIBLE);
+        if (!hasImage) {
+            binding.imageLoginAvatar.setImageDrawable(null);
+            return;
+        }
+        ImageLoader.load(binding.imageLoginAvatar, imageUrl, android.R.color.transparent);
     }
 
     private void submitLogin() {

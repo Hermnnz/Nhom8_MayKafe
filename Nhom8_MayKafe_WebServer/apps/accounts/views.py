@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.conf import settings
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -5,6 +8,19 @@ from rest_framework.views import APIView
 
 from apps.accounts.serializers import LoginSerializer
 from apps.common.responses import success_response
+
+LOGIN_AVATAR_RELATIVE_PATH = "branding/MayKafe_Avatar.jpg"
+
+
+def build_login_branding_payload(request):
+    avatar_file = Path(settings.MEDIA_ROOT) / LOGIN_AVATAR_RELATIVE_PATH
+    avatar_url = None
+    if avatar_file.exists():
+        relative_url = f"{settings.MEDIA_URL.rstrip('/')}/{LOGIN_AVATAR_RELATIVE_PATH}"
+        avatar_url = request.build_absolute_uri(relative_url)
+    return {
+        "loginAvatarUrl": avatar_url,
+    }
 
 
 def build_user_payload(user):
@@ -36,6 +52,17 @@ class LoginAPIView(APIView):
                 "user": build_user_payload(user),
             },
             message="Đăng nhập thành công.",
+            status_code=status.HTTP_200_OK,
+        )
+
+
+class BrandingAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return success_response(
+            data=build_login_branding_payload(request),
+            message="Lay thong tin avatar dang nhap thanh cong.",
             status_code=status.HTTP_200_OK,
         )
 

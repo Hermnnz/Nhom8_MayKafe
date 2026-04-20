@@ -185,9 +185,17 @@ def create_qr_order_payment(table_number: str | None, discount_percent: int, ite
 
 
 @transaction.atomic
+def create_pending_order(table_number: str | None, discount_percent: int, items_data: list[dict]) -> Order:
+    prepared = prepare_order(table_number, discount_percent, items_data)
+    return create_order_from_prepared(prepared, payment_method="", status=Order.STATUS_PENDING)
+
+
+@transaction.atomic
 def create_or_refresh_qr_payment(order: Order) -> OrderPayment:
     if order.status == Order.STATUS_PAID:
         raise serializers.ValidationError({"order": "Don hang nay da duoc thanh toan."})
+    if order.status == Order.STATUS_CANCELLED:
+        raise serializers.ValidationError({"order": "Don hang nay da bi huy."})
 
     latest_payment = order.payments.filter(method=OrderPayment.METHOD_BANK_TRANSFER).order_by("-id").first()
     if latest_payment is not None:
@@ -218,6 +226,8 @@ def confirm_cash_payment(order: Order, cash_received: int) -> tuple[Order, Order
         latest_payment = order.payments.filter(method=OrderPayment.METHOD_CASH, status=OrderPayment.STATUS_PAID).order_by("-id").first()
         if latest_payment is not None:
             return order, latest_payment
+    if order.status == Order.STATUS_CANCELLED:
+        raise serializers.ValidationError({"order": "Don hang nay da bi huy."})
     total_amount = int(round(order.total_amount))
     if cash_received < total_amount:
         raise serializers.ValidationError({"cashReceived": "So tien khach dua chua du."})
@@ -260,12 +270,34 @@ def create_cash_paid_order(table_number: str | None, discount_percent: int, cash
 
 
 @transaction.atomic
+def cancel_order(order: Order) -> Order:
+    if order.status == Order.STATUS_PAID:
+        raise serializers.ValidationError({"order": "Don hang nay da duoc thanh toan."})
+    if order.status == Order.STATUS_CANCELLED:
+        return order
+
+    order.payments.filter(
+        status__in=[OrderPayment.STATUS_PENDING, OrderPayment.STATUS_WAITING_VERIFY]
+    ).update(status=OrderPayment.STATUS_FAILED, updated_at=timezone.now())
+
+    order.status = Order.STATUS_CANCELLED
+    order.paid_at = timezone.now()
+    order.payment_method = ""
+    order.cash_received = 0
+    order.change_amount = 0
+    order.save(update_fields=["status", "paid_at", "payment_method", "cash_received", "change_amount"])
+    return order
+
+
+@transaction.atomic
 def confirm_bank_transfer(payment: OrderPayment) -> tuple[Order, OrderPayment]:
     if payment.status == OrderPayment.STATUS_PAID:
         return payment.order, payment
     payment = expire_payment_if_needed(payment)
     if payment.status == OrderPayment.STATUS_EXPIRED:
         raise serializers.ValidationError({"payment": "Ma thanh toan da het han."})
+    if payment.order.status == Order.STATUS_CANCELLED:
+        raise serializers.ValidationError({"order": "Don hang nay da bi huy."})
 
     now = timezone.now()
     payment.status = OrderPayment.STATUS_PAID

@@ -1,5 +1,10 @@
 package com.example.nhom8_makafe.data.api;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.OpenableColumns;
+
 import androidx.annotation.Nullable;
 
 import com.example.nhom8_makafe.data.SessionManager;
@@ -21,7 +26,9 @@ import com.example.nhom8_makafe.model.ReportSummary;
 import com.example.nhom8_makafe.model.Role;
 import com.example.nhom8_makafe.model.User;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +38,10 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okio.BufferedSink;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -47,6 +58,20 @@ public class ApiRepository {
             instance = new ApiRepository();
         }
         return instance;
+    }
+
+    public void fetchLoginBranding(ApiCallback<String> callback) {
+        enqueue(apiService.getLoginBranding(), new ApiCallback<LoginBrandingDto>() {
+            @Override
+            public void onSuccess(LoginBrandingDto data) {
+                callback.onSuccess(data == null ? null : data.loginAvatarUrl);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
     }
 
     public void login(String username, String password, ApiCallback<User> callback) {
@@ -181,6 +206,40 @@ public class ApiRepository {
         enqueue(apiService.updateProduct(authorization, product.getId(), toProductWriteRequest(product)), mapProductCallback(callback));
     }
 
+    public void uploadProductImage(Context context, Uri imageUri, ApiCallback<String> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        try {
+            MultipartBody.Part imagePart = buildImagePart(context, imageUri);
+            enqueue(apiService.uploadProductImage(authorization, imagePart), new ApiCallback<ProductImageUploadDto>() {
+                @Override
+                public void onSuccess(ProductImageUploadDto data) {
+                    String imageUrl = data == null ? null : data.imageUrl;
+                    if ((imageUrl == null || imageUrl.trim().isEmpty()) && data != null) {
+                        imageUrl = data.image;
+                    }
+                    if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                        callback.onError("Kh\u00f4ng nh\u1eadn \u0111\u01b0\u1ee3c URL \u1ea3nh sau khi t\u1ea3i l\u00ean.");
+                        return;
+                    }
+                    callback.onSuccess(imageUrl.trim());
+                }
+
+                @Override
+                public void onError(String message) {
+                    callback.onError(message);
+                }
+            });
+        } catch (IOException exception) {
+            String message = exception.getMessage();
+            callback.onError(message == null || message.trim().isEmpty()
+                    ? "Kh\u00f4ng th\u1ec3 \u0111\u1ecdc t\u1ec7p \u1ea3nh \u0111\u00e3 ch\u1ecdn."
+                    : message);
+        }
+    }
+
     public void deleteProduct(long productId, ApiCallback<Void> callback) {
         String authorization = requireAuthorization(callback);
         if (authorization == null) {
@@ -308,6 +367,33 @@ public class ApiRepository {
         });
     }
 
+    public void createPendingOrder(String tableNumber, int discountPercent,
+                                   List<CartItem> cartItems, ApiCallback<Integer> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        PendingOrderRequest request = new PendingOrderRequest();
+        request.tableNumber = tableNumber;
+        request.discountPercent = discountPercent;
+        request.items = buildCheckoutItems(cartItems);
+        enqueue(apiService.createPendingOrder(authorization, request), new ApiCallback<OrderDto>() {
+            @Override
+            public void onSuccess(OrderDto data) {
+                if (data == null || data.pk <= 0) {
+                    callback.onError("Kh\u00f4ng nh\u1eadn \u0111\u01b0\u1ee3c m\u00e3 h\u00f3a \u0111\u01a1n ch\u1edd thanh to\u00e1n.");
+                    return;
+                }
+                callback.onSuccess(data.pk);
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
     public void initializeQrPayment(String tableNumber, int discountPercent,
                                     List<CartItem> cartItems, ApiCallback<PaymentSession> callback) {
         String authorization = requireAuthorization(callback);
@@ -422,6 +508,24 @@ public class ApiRepository {
             @Override
             public void onSuccess(PaymentDto data) {
                 callback.onSuccess(mapPaymentSession(data));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        });
+    }
+
+    public void cancelOrder(int orderId, ApiCallback<Void> callback) {
+        String authorization = requireAuthorization(callback);
+        if (authorization == null) {
+            return;
+        }
+        enqueue(apiService.cancelOrder(authorization, orderId), new ApiCallback<OrderDto>() {
+            @Override
+            public void onSuccess(OrderDto data) {
+                callback.onSuccess(null);
             }
 
             @Override
@@ -642,6 +746,66 @@ public class ApiRepository {
             return dto.image;
         }
         return "";
+    }
+
+    private MultipartBody.Part buildImagePart(Context context, Uri imageUri) throws IOException {
+        byte[] imageBytes = readImageBytes(context, imageUri);
+        String mimeType = context.getContentResolver().getType(imageUri);
+        if (mimeType == null || mimeType.trim().isEmpty()) {
+            mimeType = "image/*";
+        }
+        MediaType mediaType = MediaType.parse(mimeType);
+        RequestBody requestBody = new RequestBody() {
+            @Override
+            public MediaType contentType() {
+                return mediaType;
+            }
+
+            @Override
+            public long contentLength() {
+                return imageBytes.length;
+            }
+
+            @Override
+            public void writeTo(BufferedSink sink) throws IOException {
+                sink.write(imageBytes);
+            }
+        };
+        return MultipartBody.Part.createFormData("image", resolveDisplayName(context, imageUri), requestBody);
+    }
+
+    private byte[] readImageBytes(Context context, Uri imageUri) throws IOException {
+        try (InputStream inputStream = context.getContentResolver().openInputStream(imageUri)) {
+            if (inputStream == null) {
+                throw new IOException("Kh\u00f4ng th\u1ec3 m\u1edf t\u1ec7p \u1ea3nh \u0111\u00e3 ch\u1ecdn.");
+            }
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+                if (outputStream.size() > 5 * 1024 * 1024) {
+                    throw new IOException("K\u00edch th\u01b0\u1edbc \u1ea3nh kh\u00f4ng \u0111\u01b0\u1ee3c v\u01b0\u1ee3t qu\u00e1 5MB.");
+                }
+            }
+            return outputStream.toByteArray();
+        }
+    }
+
+    private String resolveDisplayName(Context context, Uri imageUri) {
+        try (Cursor cursor = context.getContentResolver().query(imageUri, null, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) {
+                    String value = cursor.getString(index);
+                    if (value != null && !value.trim().isEmpty()) {
+                        return value.trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return "product-image.jpg";
     }
 
     private String requireAuthorization(ApiCallback<?> callback) {

@@ -10,7 +10,9 @@
         <item name="colorOnSurface">@color/coffee_950</item>
         <item name="android:colorBackground">@color/coffee_50</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item
+            name="android:windowLightStatusBar"
+            tools:targetApi="23">true</item>
         <item name="android:navigationBarColor">@color/white</item>
         <item name="android:windowBackground">@color/coffee_50</item>
         <item name="materialButtonStyle">@style/Widget.MayKafe.Button</item>

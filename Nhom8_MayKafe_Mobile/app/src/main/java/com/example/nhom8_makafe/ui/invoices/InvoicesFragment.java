@@ -2,6 +2,8 @@ package com.example.nhom8_makafe.ui.invoices;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -13,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -32,16 +35,20 @@ import com.example.nhom8_makafe.util.FormatUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class InvoicesFragment extends Fragment {
+    private static final long SEARCH_DEBOUNCE_MS = 250L;
+
     private FragmentInvoicesBinding binding;
     private final ApiRepository apiRepository = ApiRepository.getInstance();
+    private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private InvoiceAdapter adapter;
     private String searchQuery = "";
     private String selectedDate = "";
     private StatusFilter statusFilter = StatusFilter.ALL;
     private int baseHeaderTopPadding;
+    @Nullable
+    private Runnable pendingSearchRunnable;
 
     private enum StatusFilter {
         ALL,
@@ -93,19 +100,17 @@ public class InvoicesFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {
                 searchQuery = s == null ? "" : s.toString().trim();
-                loadInvoices();
+                scheduleInvoiceSearch();
             }
         });
 
         setupFocusDismiss();
         binding.layoutDateField.setOnClickListener(v -> openDatePicker());
-        binding.imageDateAction.setOnClickListener(v -> {
-            if (selectedDate.isEmpty()) {
-                openDatePicker();
-            } else {
-                selectedDate = "";
-                loadInvoices();
-            }
+        binding.imageDateAction.setOnClickListener(v -> openDatePicker());
+        binding.buttonClearDate.setOnClickListener(v -> {
+            selectedDate = "";
+            cancelPendingInvoiceSearch();
+            loadInvoices();
         });
 
         binding.buttonFilterAll.setOnClickListener(v -> setStatusFilter(StatusFilter.ALL));
@@ -142,6 +147,7 @@ public class InvoicesFragment extends Fragment {
 
     private void setStatusFilter(StatusFilter filter) {
         statusFilter = filter;
+        cancelPendingInvoiceSearch();
         loadInvoices();
     }
 
@@ -152,10 +158,25 @@ public class InvoicesFragment extends Fragment {
         }
     }
 
+    private void scheduleInvoiceSearch() {
+        cancelPendingInvoiceSearch();
+        pendingSearchRunnable = this::loadInvoices;
+        searchHandler.postDelayed(pendingSearchRunnable, SEARCH_DEBOUNCE_MS);
+    }
+
+    private void cancelPendingInvoiceSearch() {
+        if (pendingSearchRunnable == null) {
+            return;
+        }
+        searchHandler.removeCallbacks(pendingSearchRunnable);
+        pendingSearchRunnable = null;
+    }
+
     private void loadInvoices() {
         if (binding == null) {
             return;
         }
+        pendingSearchRunnable = null;
         apiRepository.fetchInvoices(searchQuery, selectedDate, mapStatusFilter(statusFilter), new ApiCallback<List<Invoice>>() {
             @Override
             public void onSuccess(List<Invoice> data) {
@@ -221,14 +242,16 @@ public class InvoicesFragment extends Fragment {
     private void bindDateField() {
         if (selectedDate.isEmpty()) {
             binding.textDateValue.setText("dd/mm/yyyy");
-            binding.textDateValue.setTextColor(requireContext().getColor(R.color.coffee_950));
+            binding.textDateValue.setTextColor(resolveColor(R.color.coffee_300));
             binding.imageDateAction.setImageResource(R.drawable.ic_calendar_outline);
-            binding.imageDateAction.setColorFilter(requireContext().getColor(R.color.coffee_950));
+            binding.imageDateAction.setColorFilter(resolveColor(R.color.coffee_950));
+            binding.buttonClearDate.setVisibility(View.GONE);
         } else {
             binding.textDateValue.setText(formatDisplayDate(selectedDate));
-            binding.textDateValue.setTextColor(requireContext().getColor(R.color.coffee_950));
-            binding.imageDateAction.setImageResource(R.drawable.ic_close_small);
-            binding.imageDateAction.setColorFilter(requireContext().getColor(R.color.coffee_500));
+            binding.textDateValue.setTextColor(resolveColor(R.color.coffee_950));
+            binding.imageDateAction.setImageResource(R.drawable.ic_calendar_outline);
+            binding.imageDateAction.setColorFilter(resolveColor(R.color.coffee_950));
+            binding.buttonClearDate.setVisibility(View.VISIBLE);
         }
     }
 
@@ -271,7 +294,7 @@ public class InvoicesFragment extends Fragment {
 
     private void bindFilterState(AppCompatButton button, boolean selected) {
         button.setBackgroundResource(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
-        button.setTextColor(requireContext().getColor(selected ? R.color.white : R.color.coffee_500));
+        button.setTextColor(resolveColor(selected ? R.color.white : R.color.coffee_500));
     }
 
     private String formatDisplayDate(String isoDate) {
@@ -294,6 +317,10 @@ public class InvoicesFragment extends Fragment {
                 .show(getParentFragmentManager(), "invoice_detail_sheet");
     }
 
+    private int resolveColor(int colorResId) {
+        return ContextCompat.getColor(requireContext(), colorResId);
+    }
+
     private void registerOverlayResults() {
         getParentFragmentManager().setFragmentResultListener(
                 InvoiceDatePickerOverlayFragment.REQUEST_KEY,
@@ -302,6 +329,7 @@ public class InvoicesFragment extends Fragment {
                     String value = result.getString(InvoiceDatePickerOverlayFragment.RESULT_DATE, "");
                     if (value != null) {
                         selectedDate = value;
+                        cancelPendingInvoiceSearch();
                         loadInvoices();
                     }
                 }
@@ -312,6 +340,7 @@ public class InvoicesFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (binding != null) {
+            cancelPendingInvoiceSearch();
             loadInvoices();
         }
     }
@@ -319,6 +348,7 @@ public class InvoicesFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        cancelPendingInvoiceSearch();
         binding = null;
     }
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -182,7 +183,7 @@ public class MainActivity extends AppCompatActivity
         itemBinding.navItemRoot.setEnabled(enabled);
         itemBinding.imageIcon.setImageResource(enabled ? iconRes[0] : iconRes[1]);
         itemBinding.imageIcon.setAlpha(enabled ? (active ? 1f : 0.72f) : 1f);
-        itemBinding.textLabel.setTextColor(getColor(enabled
+        itemBinding.textLabel.setTextColor(resolveColor(enabled
                 ? (active ? R.color.bottom_nav_active : R.color.bottom_nav_inactive)
                 : R.color.bottom_nav_disabled));
         itemBinding.textLabel.setTypeface(Typeface.create(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL));
@@ -196,14 +197,14 @@ public class MainActivity extends AppCompatActivity
                                     @Nullable User user) {
         itemBinding.navItemRoot.setEnabled(enabled);
         itemBinding.viewIndicator.setVisibility(active ? View.VISIBLE : View.INVISIBLE);
-        itemBinding.textLabel.setTextColor(getColor(enabled
+        itemBinding.textLabel.setTextColor(resolveColor(enabled
                 ? (active ? R.color.bottom_nav_active : R.color.bottom_nav_inactive)
                 : R.color.bottom_nav_disabled));
         itemBinding.textLabel.setTypeface(Typeface.create(Typeface.DEFAULT, active ? Typeface.BOLD : Typeface.NORMAL));
         itemBinding.layoutAvatarBadge.setAlpha(enabled ? 1f : 0.6f);
         itemBinding.textAvatar.setAlpha(enabled ? 1f : 0.58f);
 
-        int avatarColor = enabled && user != null ? resolveAvatarColor(user) : getColor(R.color.bottom_nav_disabled);
+        int avatarColor = enabled && user != null ? resolveAvatarColor(user) : resolveColor(R.color.bottom_nav_disabled);
         itemBinding.textAvatar.setBackground(createAvatarBackground(avatarColor, active));
     }
 
@@ -236,7 +237,7 @@ public class MainActivity extends AppCompatActivity
         drawable.setShape(GradientDrawable.OVAL);
         drawable.setColor(fillColor);
         if (active) {
-            drawable.setStroke(dp(2), getColor(R.color.bottom_nav_active));
+            drawable.setStroke(dp(2), resolveColor(R.color.bottom_nav_active));
         }
         return drawable;
     }
@@ -245,8 +246,12 @@ public class MainActivity extends AppCompatActivity
         try {
             return Color.parseColor(user.getAvatarColorHex());
         } catch (IllegalArgumentException ignored) {
-            return getColor(R.color.coffee_700);
+            return resolveColor(R.color.coffee_700);
         }
+    }
+
+    private int resolveColor(int colorResId) {
+        return ContextCompat.getColor(this, colorResId);
     }
 
     private String resolveAccountInitials(@NonNull User user) {

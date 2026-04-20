@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:textColor="@color/coffee_950"
-                android:textSize="14sp"
+                android:textSize="15sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textColor="@color/coffee_500"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/text_product_price"
@@ -87,7 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:textColor="@color/coffee_700"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
@@ -103,7 +103,7 @@
                 android:text="+ Th&#234;m"
                 android:textAllCaps="false"
                 android:textColor="@color/coffee_700"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -135,7 +135,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textColor="@color/white"
-                    android:textSize="15sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView

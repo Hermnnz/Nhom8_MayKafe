@@ -1,6 +1,5 @@
 package com.example.nhom8_makafe.adapter;
 
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

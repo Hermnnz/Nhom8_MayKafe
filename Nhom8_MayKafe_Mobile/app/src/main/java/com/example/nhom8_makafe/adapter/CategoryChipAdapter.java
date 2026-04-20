@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nhom8_makafe.R;
@@ -50,7 +51,10 @@ public class CategoryChipAdapter extends RecyclerView.Adapter<CategoryChipAdapte
         boolean selected = category.equals(selectedCategory);
         holder.textChip.setText(category);
         holder.textChip.setBackgroundResource(selected ? R.drawable.bg_chip_selected : R.drawable.bg_chip_unselected);
-        holder.textChip.setTextColor(holder.itemView.getContext().getColor(selected ? R.color.white : R.color.coffee_500));
+        holder.textChip.setTextColor(ContextCompat.getColor(
+                holder.itemView.getContext(),
+                selected ? R.color.white : R.color.coffee_500
+        ));
         holder.textChip.setOnClickListener(v -> listener.onCategoryClick(category));
     }
 

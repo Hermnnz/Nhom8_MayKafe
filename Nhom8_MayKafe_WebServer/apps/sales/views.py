@@ -12,11 +12,13 @@ from apps.sales.serializers import (
     CashPaymentCartConfirmSerializer,
     CashPaymentConfirmSerializer,
     CheckoutSerializer,
+    OrderCancelSerializer,
     OrderPaymentSerializer,
     OrderQrPaymentSerializer,
     OrderSerializer,
     PaymentConfirmSerializer,
     PaymentStatusSerializer,
+    PendingOrderCreateSerializer,
     QrPaymentInitSerializer,
 )
 
@@ -45,6 +47,20 @@ class QrPaymentInitAPIView(APIView):
         return success_response(
             data=OrderPaymentSerializer(payment).data,
             message="Tao du lieu thanh toan QR thanh cong.",
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
+class PendingOrderAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PendingOrderCreateSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return success_response(
+            data=OrderSerializer(order).data,
+            message="Tao don hang cho thanh toan thanh cong.",
             status_code=status.HTTP_201_CREATED,
         )
 
@@ -120,6 +136,12 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_order_for_action(self, pk):
+        return get_object_or_404(
+            Order.objects.prefetch_related("items__product", "payments"),
+            pk=pk,
+        )
+
     def get_queryset(self):
         queryset = super().get_queryset()
         search = self.request.query_params.get("search", "").strip()
@@ -141,6 +163,8 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
         if status_value in {Order.STATUS_PAID, Order.STATUS_PENDING, Order.STATUS_CANCELLED}:
             queryset = queryset.filter(status=status_value)
+        elif not status_value:
+            queryset = queryset.filter(status__in=[Order.STATUS_PAID, Order.STATUS_CANCELLED])
 
         return queryset
 
@@ -152,13 +176,24 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="restore")
     def restore(self, request, pk=None):
-        order = self.get_object()
+        order = self.get_order_for_action(pk)
         if order.status == Order.STATUS_CANCELLED:
             order.status = Order.STATUS_PENDING
             order.save(update_fields=["status"])
         return success_response(
             data=self.get_serializer(order).data,
             message="Khoi phuc don hang thanh cong.",
+        )
+
+    @action(detail=True, methods=["post"], url_path="cancel")
+    def cancel(self, request, pk=None):
+        order = self.get_order_for_action(pk)
+        serializer = OrderCancelSerializer(data={}, context={"order": order, "request": request})
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return success_response(
+            data=self.get_serializer(order).data,
+            message="Huy don hang thanh cong.",
         )
 
     @action(detail=False, methods=["get"], url_path=r"by-code/(?P<code>[^/.]+)")

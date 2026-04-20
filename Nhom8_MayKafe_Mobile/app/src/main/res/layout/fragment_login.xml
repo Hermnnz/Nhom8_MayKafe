@@ -8,12 +8,13 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="280dp"
+            android:layout_height="0dp"
+            android:layout_weight="0.38"
             android:background="@drawable/bg_login_header"
             android:gravity="center_horizontal|bottom"
             android:orientation="vertical"
@@ -31,21 +32,29 @@
                 app:strokeColor="#33FFFFFF"
                 app:strokeWidth="2dp">
 
-                <LinearLayout
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_primary_button"
-                    android:gravity="center"
-                    android:orientation="vertical">
+                    android:background="@drawable/bg_primary_button">
 
                     <TextView
+                        android:id="@+id/text_login_avatar_fallback"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:text="MK"
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:textStyle="bold" />
-                </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/image_login_avatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/app_name"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+                </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -68,7 +77,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="0.62"
             android:orientation="vertical"
             android:paddingLeft="24dp"
             android:paddingTop="24dp"

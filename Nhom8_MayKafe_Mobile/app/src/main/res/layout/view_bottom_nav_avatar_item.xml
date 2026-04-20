@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -53,7 +54,7 @@
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_nav_badge_logout"
-                android:tint="@color/bottom_nav_active" />
+            app:tint="@color/bottom_nav_active" />
         </FrameLayout>
     </FrameLayout>
 

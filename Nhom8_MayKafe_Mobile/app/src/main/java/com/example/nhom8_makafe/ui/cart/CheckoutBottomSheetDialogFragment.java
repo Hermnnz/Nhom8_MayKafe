@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.example.nhom8_makafe.R;
 import com.example.nhom8_makafe.data.SessionManager;
@@ -25,9 +26,9 @@ import com.example.nhom8_makafe.model.Invoice;
 import com.example.nhom8_makafe.model.PaymentMethod;
 import com.example.nhom8_makafe.model.PaymentSession;
 import com.example.nhom8_makafe.model.User;
+import com.example.nhom8_makafe.ui.overlay.OverlayFragment;
 import com.example.nhom8_makafe.util.FormatUtils;
 import com.example.nhom8_makafe.util.QrBitmapUtils;
-import com.example.nhom8_makafe.ui.overlay.OverlayFragment;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
@@ -43,8 +44,13 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
     private int discountPercent = 0;
     private int lastAvailableHeight = 0;
     private boolean updatingCashInput = false;
+    private boolean pendingOrderRequestInFlight = false;
+    private boolean pendingOrderCancelInFlight = false;
+    private boolean cancelAfterPendingOrderCreation = false;
     private boolean qrRequestInFlight = false;
     private boolean confirmInFlight = false;
+    private boolean paymentCompleted = false;
+    private int pendingOrderId = 0;
     @Nullable
     private View overlayRoot;
     @Nullable
@@ -93,10 +99,134 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
         binding.buttonConfirmPayment.setOnClickListener(v -> confirmPayment());
 
         sessionManager.addObserver(this);
+        createPendingOrder();
         renderState();
         if (overlayRoot != null) {
             overlayRoot.post(this::refreshOverlayBounds);
         }
+    }
+
+    @Override
+    public void dismissAllowingStateLoss() {
+        if (paymentCompleted) {
+            forceDismiss();
+            return;
+        }
+        if (pendingOrderCancelInFlight || confirmInFlight) {
+            return;
+        }
+        if (pendingOrderRequestInFlight && pendingOrderId <= 0) {
+            cancelAfterPendingOrderCreation = true;
+            renderState();
+            return;
+        }
+        if (pendingOrderId > 0) {
+            cancelPendingOrderAndDismiss();
+            return;
+        }
+        forceDismiss();
+    }
+
+    private void forceDismiss() {
+        super.dismissAllowingStateLoss();
+    }
+
+    private void createPendingOrder() {
+        if (binding == null || pendingOrderRequestInFlight || pendingOrderId > 0) {
+            return;
+        }
+        List<CartItem> cartItems = sessionManager.getCartItems();
+        if (cartItems.isEmpty()) {
+            forceDismiss();
+            return;
+        }
+
+        pendingOrderRequestInFlight = true;
+        renderState();
+        apiRepository.createPendingOrder(TABLE_LABEL, discountPercent, cartItems, new ApiCallback<Integer>() {
+            @Override
+            public void onSuccess(Integer data) {
+                pendingOrderRequestInFlight = false;
+                pendingOrderId = data == null ? 0 : data;
+                if (pendingOrderId <= 0) {
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Kh\u00f4ng th\u1ec3 kh\u1edfi t\u1ea1o \u0111\u01a1n ch\u1edd thanh to\u00e1n.", Toast.LENGTH_SHORT).show();
+                    }
+                    forceDismiss();
+                    return;
+                }
+                if (cancelAfterPendingOrderCreation) {
+                    cancelPendingOrderAndDismiss();
+                    return;
+                }
+                renderState();
+            }
+
+            @Override
+            public void onError(String message) {
+                pendingOrderRequestInFlight = false;
+                if (!isAdded()) {
+                    return;
+                }
+                renderState();
+                Toast.makeText(
+                        requireContext(),
+                        message == null || message.trim().isEmpty()
+                                ? "Kh\u00f4ng th\u1ec3 kh\u1edfi t\u1ea1o \u0111\u01a1n ch\u1edd thanh to\u00e1n."
+                                : message,
+                        Toast.LENGTH_SHORT
+                ).show();
+                forceDismiss();
+            }
+        });
+    }
+
+    private void cancelPendingOrderAndDismiss() {
+        if (pendingOrderCancelInFlight || paymentCompleted) {
+            return;
+        }
+        if (pendingOrderRequestInFlight && pendingOrderId <= 0) {
+            cancelAfterPendingOrderCreation = true;
+            renderState();
+            return;
+        }
+        if (pendingOrderId <= 0) {
+            forceDismiss();
+            return;
+        }
+
+        pendingOrderCancelInFlight = true;
+        cancelAfterPendingOrderCreation = false;
+        renderState();
+        apiRepository.cancelOrder(pendingOrderId, new ApiCallback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                pendingOrderCancelInFlight = false;
+                qrRequestInFlight = false;
+                confirmInFlight = false;
+                selectedPaymentMethod = null;
+                qrPaymentSession = null;
+                pendingOrderId = 0;
+                sessionManager.clearCart();
+                forceDismiss();
+            }
+
+            @Override
+            public void onError(String message) {
+                pendingOrderCancelInFlight = false;
+                if (!isAdded() || binding == null) {
+                    return;
+                }
+                renderState();
+                Toast.makeText(
+                        requireContext(),
+                        message == null || message.trim().isEmpty()
+                                ? "Kh\u00f4ng th\u1ec3 h\u1ee7y \u0111\u01a1n ch\u1edd thanh to\u00e1n."
+                                : message,
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
     }
 
     private void refreshOverlayBounds() {
@@ -196,11 +326,14 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
     }
 
     private void selectPaymentMethod(@NonNull PaymentMethod paymentMethod) {
+        if (pendingOrderRequestInFlight || pendingOrderCancelInFlight || confirmInFlight || pendingOrderId <= 0) {
+            return;
+        }
         selectedPaymentMethod = paymentMethod;
         if (paymentMethod == PaymentMethod.CASH) {
             int currentValue = parseInt(binding.editCashReceived.getText() == null ? "" : binding.editCashReceived.getText().toString());
             if (currentValue <= 0) {
-                setCashReceivedText(getResolvedTotal());
+                setCashReceivedText(0);
                 return;
             }
         } else {
@@ -210,12 +343,13 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
     }
 
     private void ensureQrPaymentSession(boolean fromConfirmAction) {
-        if (binding == null || qrRequestInFlight || confirmInFlight || !isAdded()) {
+        if (binding == null || qrRequestInFlight || confirmInFlight || pendingOrderCancelInFlight || !isAdded() || pendingOrderId <= 0) {
             return;
         }
         int expectedTotal = getLocalFinalTotal();
         if (qrPaymentSession != null
                 && qrPaymentSession.getPaymentId() > 0
+                && qrPaymentSession.getOrderId() == pendingOrderId
                 && qrPaymentSession.getAmount() == expectedTotal) {
             renderState();
             return;
@@ -223,7 +357,7 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
 
         qrRequestInFlight = true;
         renderState();
-        ApiCallback<PaymentSession> callback = new ApiCallback<PaymentSession>() {
+        apiRepository.refreshQrPayment(pendingOrderId, new ApiCallback<PaymentSession>() {
             @Override
             public void onSuccess(PaymentSession data) {
                 if (!isAdded() || binding == null) {
@@ -252,12 +386,7 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
                         Toast.LENGTH_SHORT
                 ).show();
             }
-        };
-        if (qrPaymentSession != null && qrPaymentSession.getOrderId() > 0) {
-            apiRepository.refreshQrPayment(qrPaymentSession.getOrderId(), callback);
-        } else {
-            apiRepository.initializeQrPayment(TABLE_LABEL, discountPercent, sessionManager.getCartItems(), callback);
-        }
+        });
     }
 
     private void renderState() {
@@ -265,16 +394,35 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
             return;
         }
         if (sessionManager.getCartItems().isEmpty()) {
-            dismissAllowingStateLoss();
+            forceDismiss();
             return;
         }
 
+        boolean orderReady = pendingOrderId > 0 && !pendingOrderRequestInFlight;
+        boolean interactionLocked = pendingOrderRequestInFlight || pendingOrderCancelInFlight || confirmInFlight;
         int resolvedTotal = getResolvedTotal();
         binding.textTotalAmount.setText(FormatUtils.formatCurrency(resolvedTotal));
         binding.textItemCount.setText(sessionManager.getCartCount() + " m\u00f3n");
 
-        boolean cashSelected = selectedPaymentMethod == PaymentMethod.CASH;
-        boolean qrSelected = selectedPaymentMethod == PaymentMethod.QR;
+        if (pendingOrderCancelInFlight) {
+            binding.textPaymentSectionTitle.setText("\u0110ang h\u1ee7y \u0111\u01a1n h\u00e0ng...");
+        } else if (pendingOrderRequestInFlight) {
+            binding.textPaymentSectionTitle.setText("\u0110ang kh\u1edfi t\u1ea1o \u0111\u01a1n ch\u1edd thanh to\u00e1n...");
+        } else {
+            binding.textPaymentSectionTitle.setText("Ch\u1ecdn ph\u01b0\u01a1ng th\u1ee9c thanh to\u00e1n");
+        }
+
+        binding.cardPaymentCash.setEnabled(orderReady && !interactionLocked);
+        binding.cardPaymentQr.setEnabled(orderReady && !interactionLocked);
+        binding.cardPaymentCash.setClickable(orderReady && !interactionLocked);
+        binding.cardPaymentQr.setClickable(orderReady && !interactionLocked);
+        binding.cardPaymentCash.setAlpha(orderReady ? 1f : 0.65f);
+        binding.cardPaymentQr.setAlpha(orderReady ? 1f : 0.65f);
+        binding.buttonBack.setEnabled(!interactionLocked);
+        binding.buttonClose.setEnabled(!interactionLocked);
+
+        boolean cashSelected = orderReady && selectedPaymentMethod == PaymentMethod.CASH;
+        boolean qrSelected = orderReady && selectedPaymentMethod == PaymentMethod.QR;
         stylePaymentCard(binding.cardPaymentCash, binding.layoutCashIconBg, binding.imageCashIcon, binding.textCashLabel, cashSelected);
         stylePaymentCard(binding.cardPaymentQr, binding.layoutQrIconBg, binding.imageQrIcon, binding.textQrLabel, qrSelected);
         binding.layoutCashSection.setVisibility(cashSelected ? View.VISIBLE : View.GONE);
@@ -339,37 +487,42 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
         if (delta > 0) {
             binding.layoutCashResult.setBackgroundResource(R.drawable.bg_payment_status_success);
             binding.textCashResultLabel.setText("Ti\u1ec1n th\u1eeba tr\u1ea3 l\u1ea1i:");
-            binding.textCashResultLabel.setTextColor(requireContext().getColor(R.color.success));
-            binding.textCashResultValue.setTextColor(requireContext().getColor(R.color.success));
+            binding.textCashResultLabel.setTextColor(resolveColor(R.color.success));
+            binding.textCashResultValue.setTextColor(resolveColor(R.color.success));
             binding.textCashResultValue.setText(FormatUtils.formatCurrency(delta));
         } else {
             binding.layoutCashResult.setBackgroundResource(R.drawable.bg_payment_status_danger);
             binding.textCashResultLabel.setText("C\u00f2n thi\u1ebfu:");
-            binding.textCashResultLabel.setTextColor(requireContext().getColor(R.color.danger));
-            binding.textCashResultValue.setTextColor(requireContext().getColor(R.color.danger));
+            binding.textCashResultLabel.setTextColor(resolveColor(R.color.danger));
+            binding.textCashResultValue.setTextColor(resolveColor(R.color.danger));
             binding.textCashResultValue.setText(FormatUtils.formatCurrency(Math.abs(delta)));
         }
     }
 
     private void updateConfirmButton(int finalTotal) {
+        boolean orderReady = pendingOrderId > 0 && !pendingOrderRequestInFlight;
         boolean enabled = false;
         String text;
-        if (confirmInFlight) {
+        if (pendingOrderCancelInFlight) {
+            text = "\u0110ang h\u1ee7y \u0111\u01a1n...";
+        } else if (pendingOrderRequestInFlight) {
+            text = "\u0110ang t\u1ea1o \u0111\u01a1n...";
+        } else if (confirmInFlight) {
             text = "\u0110ang x\u1eed l\u00fd...";
         } else if (selectedPaymentMethod == PaymentMethod.QR && qrRequestInFlight) {
             text = "\u0110ang t\u1ea1o QR...";
         } else if (selectedPaymentMethod == PaymentMethod.QR) {
-            text = "\u0110\u00e3 chuy\u1ec3n kho\u1ea3n \u2713";
-            enabled = qrPaymentSession != null && qrPaymentSession.getPaymentId() > 0 && !sessionManager.getCartItems().isEmpty();
+            text = "X\u00e1c nh\u1eadn thanh to\u00e1n";
+            enabled = orderReady && qrPaymentSession != null && qrPaymentSession.getPaymentId() > 0 && !sessionManager.getCartItems().isEmpty();
         } else {
             text = "X\u00e1c nh\u1eadn thanh to\u00e1n";
-            if (selectedPaymentMethod == PaymentMethod.CASH) {
+            if (orderReady && selectedPaymentMethod == PaymentMethod.CASH) {
                 int cashReceived = parseInt(binding.editCashReceived.getText() == null ? "" : binding.editCashReceived.getText().toString());
                 enabled = cashReceived >= finalTotal && !sessionManager.getCartItems().isEmpty();
             }
         }
 
-        if (confirmInFlight || qrRequestInFlight) {
+        if (confirmInFlight || qrRequestInFlight || pendingOrderRequestInFlight || pendingOrderCancelInFlight) {
             enabled = false;
         }
         binding.buttonConfirmPayment.setText(text);
@@ -396,7 +549,7 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
     }
 
     private void confirmPayment() {
-        if (binding == null || selectedPaymentMethod == null || confirmInFlight) {
+        if (binding == null || selectedPaymentMethod == null || confirmInFlight || pendingOrderRequestInFlight || pendingOrderCancelInFlight || pendingOrderId <= 0) {
             return;
         }
         int finalTotal = getResolvedTotal();
@@ -422,7 +575,7 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
     private void submitCashPayment(int cashReceived) {
         confirmInFlight = true;
         renderState();
-        ApiCallback<Invoice> callback = new ApiCallback<Invoice>() {
+        apiRepository.confirmCashPaymentForOrder(pendingOrderId, cashReceived, new ApiCallback<Invoice>() {
             @Override
             public void onSuccess(Invoice data) {
                 handlePaymentSuccess();
@@ -432,16 +585,13 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
             public void onError(String message) {
                 handlePaymentError(message, "Kh\u00f4ng th\u1ec3 x\u1eed l\u00fd thanh to\u00e1n ti\u1ec1n m\u1eb7t.");
             }
-        };
-
-        if (qrPaymentSession != null && qrPaymentSession.getOrderId() > 0) {
-            apiRepository.confirmCashPaymentForOrder(qrPaymentSession.getOrderId(), cashReceived, callback);
-        } else {
-            apiRepository.confirmCashPayment(TABLE_LABEL, discountPercent, cashReceived, sessionManager.getCartItems(), callback);
-        }
+        });
     }
 
     private void submitQrPaymentConfirmation() {
+        if (qrPaymentSession == null) {
+            return;
+        }
         confirmInFlight = true;
         renderState();
         apiRepository.confirmBankTransfer(qrPaymentSession.getPaymentId(), new ApiCallback<Invoice>() {
@@ -463,8 +613,14 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
         }
         androidx.fragment.app.FragmentManager fragmentManager = getParentFragmentManager();
         View rootView = requireActivity().findViewById(android.R.id.content);
+        paymentCompleted = true;
+        confirmInFlight = false;
+        pendingOrderRequestInFlight = false;
+        pendingOrderCancelInFlight = false;
+        qrRequestInFlight = false;
+        pendingOrderId = 0;
         sessionManager.clearCart();
-        dismissAllowingStateLoss();
+        forceDismiss();
         rootView.post(() -> {
             if (!fragmentManager.isStateSaved()) {
                 androidx.fragment.app.Fragment existing = fragmentManager.findFragmentByTag(PaymentSuccessDialogFragment.TAG);
@@ -494,16 +650,16 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
                                   @NonNull ImageView icon,
                                   @NonNull TextView label,
                                   boolean selected) {
-        card.setCardBackgroundColor(requireContext().getColor(selected ? R.color.coffee_100 : R.color.white));
-        card.setStrokeColor(requireContext().getColor(selected ? R.color.coffee_700 : R.color.coffee_200));
+        card.setCardBackgroundColor(resolveColor(selected ? R.color.coffee_100 : R.color.white));
+        card.setStrokeColor(resolveColor(selected ? R.color.coffee_700 : R.color.coffee_200));
         card.setStrokeWidth(dp(selected ? 2 : 1));
         iconBackground.setBackgroundResource(selected ? R.drawable.bg_payment_icon_selected : R.drawable.bg_payment_icon_idle);
-        icon.setColorFilter(requireContext().getColor(selected ? R.color.white : R.color.coffee_700));
-        label.setTextColor(requireContext().getColor(selected ? R.color.coffee_700 : R.color.coffee_950));
+        icon.setColorFilter(resolveColor(selected ? R.color.white : R.color.coffee_700));
+        label.setTextColor(resolveColor(selected ? R.color.coffee_700 : R.color.coffee_950));
     }
 
     private void updateCashReceivedBy(int delta) {
-        if (binding == null) {
+        if (binding == null || pendingOrderRequestInFlight || pendingOrderCancelInFlight || confirmInFlight) {
             return;
         }
         int currentValue = parseInt(binding.editCashReceived.getText() == null ? "" : binding.editCashReceived.getText().toString());
@@ -599,6 +755,10 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
         view.setLayoutParams(marginLayoutParams);
     }
 
+    private int resolveColor(int colorResId) {
+        return ContextCompat.getColor(requireContext(), colorResId);
+    }
+
     @Override
     public void onSessionChanged(User user) {
         if (user == null) {
@@ -612,6 +772,11 @@ public class CheckoutBottomSheetDialogFragment extends OverlayFragment implement
             return;
         }
         if (cartItems.isEmpty()) {
+            dismissAllowingStateLoss();
+            return;
+        }
+        if (!paymentCompleted && (pendingOrderRequestInFlight || pendingOrderId > 0)) {
+            Toast.makeText(requireContext(), "Gi\u1ecf h\u00e0ng \u0111\u00e3 thay \u0111\u1ed5i. Vui l\u00f2ng x\u00e1c nh\u1eadn l\u1ea1i \u0111\u01a1n h\u00e0ng.", Toast.LENGTH_SHORT).show();
             dismissAllowingStateLoss();
             return;
         }

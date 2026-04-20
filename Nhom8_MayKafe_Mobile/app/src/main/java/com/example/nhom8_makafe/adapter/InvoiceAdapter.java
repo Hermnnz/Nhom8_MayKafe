@@ -62,7 +62,7 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
         boolean hasNote = note != null && !note.trim().isEmpty();
 
         holder.textInvoiceId.setText(invoice.getId());
-        holder.textMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+        holder.textMeta.setText(buildDateTimeMeta(invoice.getDate(), invoice.getTime()));
         holder.textTotal.setText(formatInvoiceTotal(invoiceTotal));
         holder.textPreview.setText(buildPreview(invoiceItems));
         holder.textExpandedTotal.setText(formatInvoiceTotal(invoiceTotal));
@@ -129,6 +129,18 @@ public class InvoiceAdapter extends RecyclerView.Adapter<InvoiceAdapter.ViewHold
             return isoDate;
         }
         return parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    private String buildDateTimeMeta(String date, String time) {
+        String displayDate = formatDisplayDate(date).trim();
+        String displayTime = time == null ? "" : time.trim();
+        if (displayDate.isEmpty()) {
+            return displayTime;
+        }
+        if (displayTime.isEmpty()) {
+            return displayDate;
+        }
+        return displayDate + " " + displayTime;
     }
 
     private String formatInvoiceTotal(int total) {

@@ -7,12 +7,18 @@ import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.PATCH;
+import retrofit2.http.Part;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import okhttp3.MultipartBody;
 
 public interface ApiService {
+    @GET("auth/branding/")
+    Call<ApiEnvelope<LoginBrandingDto>> getLoginBranding();
+
     @POST("auth/login/")
     Call<ApiEnvelope<LoginPayloadDto>> login(@Body LoginRequest request);
 
@@ -45,6 +51,13 @@ public interface ApiService {
             @Header("Authorization") String authorization,
             @Path("id") long productId,
             @Body ProductWriteRequest request
+    );
+
+    @Multipart
+    @POST("catalog/products/upload-image/")
+    Call<ApiEnvelope<ProductImageUploadDto>> uploadProductImage(
+            @Header("Authorization") String authorization,
+            @Part MultipartBody.Part image
     );
 
     @PATCH("catalog/products/{id}/availability/")
@@ -87,6 +100,12 @@ public interface ApiService {
             @Body CheckoutRequest request
     );
 
+    @POST("orders/pending/")
+    Call<ApiEnvelope<OrderDto>> createPendingOrder(
+            @Header("Authorization") String authorization,
+            @Body PendingOrderRequest request
+    );
+
     @POST("orders/payment/qr/")
     Call<ApiEnvelope<PaymentDto>> createQrPayment(
             @Header("Authorization") String authorization,
@@ -122,6 +141,12 @@ public interface ApiService {
     Call<ApiEnvelope<PaymentDto>> getPaymentStatus(
             @Header("Authorization") String authorization,
             @Path("paymentId") int paymentId
+    );
+
+    @POST("orders/{orderId}/cancel/")
+    Call<ApiEnvelope<OrderDto>> cancelOrder(
+            @Header("Authorization") String authorization,
+            @Path("orderId") int orderId
     );
 
     @GET("reports/dashboard/")

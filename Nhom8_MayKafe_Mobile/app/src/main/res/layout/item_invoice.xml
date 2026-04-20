@@ -100,7 +100,7 @@
                     android:layout_height="14dp"
                     android:contentDescription="Ng&#224;y"
                     android:src="@drawable/ic_calendar_outline"
-                    android:tint="@color/coffee_400" />
+                    app:tint="@color/coffee_400" />
 
                 <TextView
                     android:id="@+id/text_meta"
@@ -145,7 +145,7 @@
                 android:layout_height="18dp"
                 android:contentDescription="M&#7903; r&#7897;ng"
                 android:src="@drawable/ic_chevron_down"
-                android:tint="@color/coffee_400" />
+                    app:tint="@color/coffee_400" />
         </LinearLayout>
 
         <LinearLayout

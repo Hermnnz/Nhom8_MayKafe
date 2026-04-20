@@ -177,7 +177,7 @@
                                 android:layout_gravity="center"
                                 android:contentDescription="Doanh thu"
                                 android:src="@drawable/ic_kpi_revenue"
-                                android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
                         </FrameLayout>
 
                         <TextView
@@ -249,7 +249,7 @@
                                 android:layout_gravity="center"
                                 android:contentDescription="&#272;&#417;n h&#224;ng"
                                 android:src="@drawable/ic_kpi_orders"
-                                android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
                         </FrameLayout>
 
                         <TextView
@@ -324,7 +324,7 @@
                                 android:layout_gravity="center"
                                 android:contentDescription="TB/&#273;&#417;n"
                                 android:src="@drawable/ic_kpi_average"
-                                android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
                         </FrameLayout>
 
                         <TextView
@@ -396,7 +396,7 @@
                                 android:layout_gravity="center"
                                 android:contentDescription="Kh&#225;ch h&#224;ng"
                                 android:src="@drawable/ic_kpi_customers"
-                                android:tint="@color/coffee_500" />
+                    app:tint="@color/coffee_500" />
                         </FrameLayout>
 
                         <TextView

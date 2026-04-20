@@ -95,7 +95,7 @@
                 android:layout_height="18dp"
                 android:contentDescription="Tìm món"
                 android:src="@drawable/ic_search_outline"
-                android:tint="@color/coffee_500" />
+                app:tint="@color/coffee_500" />
 
             <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/edit_search_menu"

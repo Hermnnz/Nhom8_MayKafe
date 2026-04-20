@@ -27,6 +27,7 @@ public class CartBottomSheetDialogFragment extends OverlayFragment implements Se
     private CartItemAdapter adapter;
     private int discountPercent = 0;
     private boolean updatingDiscountInput = false;
+    private boolean isEditingNote = false;
 
     public static CartBottomSheetDialogFragment newInstance() {
         return new CartBottomSheetDialogFragment();
@@ -58,7 +59,9 @@ public class CartBottomSheetDialogFragment extends OverlayFragment implements Se
 
             @Override
             public void onNoteChanged(CartItem item, String note) {
+                isEditingNote = true;
                 sessionManager.updateNote(item.getProductId(), note);
+                isEditingNote = false;
             }
         });
         binding.recyclerCart.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -196,7 +199,9 @@ public class CartBottomSheetDialogFragment extends OverlayFragment implements Se
             dismissAllowingStateLoss();
             return;
         }
-        renderState();
+        if (!isEditingNote) {
+            renderState();
+        }
     }
 
     @Override

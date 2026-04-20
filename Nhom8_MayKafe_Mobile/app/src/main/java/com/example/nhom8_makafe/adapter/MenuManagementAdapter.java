@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.nhom8_makafe.R;
@@ -18,6 +19,7 @@ import com.example.nhom8_makafe.util.FormatUtils;
 import com.example.nhom8_makafe.util.ImageLoader;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MenuManagementAdapter extends RecyclerView.Adapter<MenuManagementAdapter.ViewHolder> {
@@ -37,8 +39,10 @@ public class MenuManagementAdapter extends RecyclerView.Adapter<MenuManagementAd
     }
 
     public void submitList(List<Product> products) {
+        List<Product> sortedProducts = new ArrayList<>(products);
+        Collections.sort(sortedProducts, (first, second) -> Long.compare(second.getId(), first.getId()));
         items.clear();
-        items.addAll(products);
+        items.addAll(sortedProducts);
         notifyDataSetChanged();
     }
 
@@ -66,8 +70,8 @@ public class MenuManagementAdapter extends RecyclerView.Adapter<MenuManagementAd
             }
         });
 
-        holder.buttonEdit.setColorFilter(holder.buttonEdit.getContext().getColor(R.color.coffee_700));
-        holder.buttonDelete.setColorFilter(holder.buttonDelete.getContext().getColor(R.color.danger));
+        holder.buttonEdit.setColorFilter(ContextCompat.getColor(holder.buttonEdit.getContext(), R.color.coffee_700));
+        holder.buttonDelete.setColorFilter(ContextCompat.getColor(holder.buttonDelete.getContext(), R.color.danger));
         holder.buttonEdit.setOnClickListener(v -> listener.onEdit(product));
         holder.buttonDelete.setOnClickListener(v -> listener.onDelete(product));
     }

@@ -31,30 +31,46 @@
         android:baselineAligned="false"
         android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_cancel_date"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_auth_dialog_cancel"
+            android:background="@drawable/bg_invoice_date_picker_cancel"
+            android:gravity="center"
+            android:maxLines="1"
+            android:minHeight="50dp"
+            android:paddingLeft="12dp"
+            android:paddingTop="0dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="0dp"
+            android:singleLine="true"
             android:text="H&#7911;y"
             android:textAllCaps="false"
-            android:textColor="@color/coffee_700"
-            android:textSize="15sp"
+            android:textColor="@color/coffee_800"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/button_confirm_date"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_auth_dialog_confirm"
+            android:background="@drawable/bg_invoice_date_picker_confirm"
+            android:gravity="center"
+            android:maxLines="1"
+            android:minHeight="50dp"
+            android:paddingLeft="12dp"
+            android:paddingTop="0dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="0dp"
+            android:singleLine="true"
             android:text="&#193;p d&#7909;ng"
             android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
 

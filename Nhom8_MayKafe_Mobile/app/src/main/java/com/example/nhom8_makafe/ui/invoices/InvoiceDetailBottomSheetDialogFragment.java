@@ -8,6 +8,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.nhom8_makafe.R;
@@ -94,7 +95,7 @@ public class InvoiceDetailBottomSheetDialogFragment extends OverlayFragment {
         if (headerBinding != null) {
             headerBinding.textSheetTitle.setText("H\u00f3a \u0111\u01a1n " + invoice.getId());
             headerBinding.textSheetMeta.setVisibility(View.VISIBLE);
-            headerBinding.textSheetMeta.setText(invoice.getTableNumber() + " \u2022 " + formatDisplayDate(invoice.getDate()) + " " + invoice.getTime());
+            headerBinding.textSheetMeta.setText(buildDateTimeMeta(invoice.getDate(), invoice.getTime()));
         }
         bindStatus(invoice.getStatus());
         adapter.submitList(invoice.getItems());
@@ -111,32 +112,51 @@ public class InvoiceDetailBottomSheetDialogFragment extends OverlayFragment {
         if (status == OrderStatus.CANCELLED) {
             binding.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_cancelled);
             binding.imageStatus.setImageResource(R.drawable.ic_stat_cancelled);
-            binding.imageStatus.setColorFilter(requireContext().getColor(R.color.danger));
-            binding.textStatus.setTextColor(requireContext().getColor(R.color.danger));
+            binding.imageStatus.setColorFilter(resolveColor(R.color.danger));
+            binding.textStatus.setTextColor(resolveColor(R.color.danger));
             binding.textStatus.setText("\u0110\u00e3 h\u1ee7y");
             binding.layoutPaymentInfo.setBackgroundResource(R.drawable.bg_status_cancelled);
             binding.imagePayment.setImageResource(R.drawable.ic_stat_cancelled);
-            binding.imagePayment.setColorFilter(requireContext().getColor(R.color.danger));
-            binding.textPaymentInfo.setTextColor(requireContext().getColor(R.color.danger));
-        } else {
-            binding.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_paid);
-            binding.imageStatus.setImageResource(R.drawable.ic_stat_paid);
-            binding.imageStatus.setColorFilter(requireContext().getColor(R.color.success));
-            binding.textStatus.setTextColor(requireContext().getColor(R.color.success));
-            binding.textStatus.setText("\u0110\u00e3 thanh to\u00e1n");
-            binding.layoutPaymentInfo.setBackgroundResource(R.drawable.bg_success_pill);
-            binding.imagePayment.setImageResource(R.drawable.ic_stat_paid);
-            binding.imagePayment.setColorFilter(requireContext().getColor(R.color.success));
-            binding.textPaymentInfo.setTextColor(requireContext().getColor(R.color.success));
+            binding.imagePayment.setColorFilter(resolveColor(R.color.danger));
+            binding.textPaymentInfo.setTextColor(resolveColor(R.color.danger));
+            return;
         }
+        binding.layoutStatusChip.setBackgroundResource(R.drawable.bg_status_paid);
+        binding.imageStatus.setImageResource(R.drawable.ic_stat_paid);
+        binding.imageStatus.setColorFilter(resolveColor(R.color.success));
+        binding.textStatus.setTextColor(resolveColor(R.color.success));
+        binding.textStatus.setText("\u0110\u00e3 thanh to\u00e1n");
+        binding.layoutPaymentInfo.setBackgroundResource(R.drawable.bg_success_pill);
+        binding.imagePayment.setImageResource(R.drawable.ic_stat_paid);
+        binding.imagePayment.setColorFilter(resolveColor(R.color.success));
+        binding.textPaymentInfo.setTextColor(resolveColor(R.color.success));
     }
 
     private String formatDisplayDate(String isoDate) {
+        if (isoDate == null) {
+            return "";
+        }
         String[] parts = isoDate.split("-");
         if (parts.length != 3) {
             return isoDate;
         }
         return parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    private String buildDateTimeMeta(String date, String time) {
+        String displayDate = formatDisplayDate(date).trim();
+        String displayTime = time == null ? "" : time.trim();
+        if (displayDate.isEmpty()) {
+            return displayTime;
+        }
+        if (displayTime.isEmpty()) {
+            return displayDate;
+        }
+        return displayDate + " " + displayTime;
+    }
+
+    private int resolveColor(int colorResId) {
+        return ContextCompat.getColor(requireContext(), colorResId);
     }
 
     @Override

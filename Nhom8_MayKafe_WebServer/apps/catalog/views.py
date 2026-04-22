@@ -1,3 +1,4 @@
+from django.db.models.deletion import ProtectedError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -11,7 +12,7 @@ from apps.catalog.serializers import (
     ProductWriteSerializer,
 )
 from apps.common.permissions import IsAdminRole
-from apps.common.responses import success_response
+from apps.common.responses import error_response, success_response
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -97,7 +98,13 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.delete()
+        try:
+            instance.delete()
+        except ProtectedError:
+            return error_response(
+                message="Hiện không thể xóa món này",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         return success_response(message="Xoa mon thanh cong.")
 
     @action(detail=True, methods=["patch"], url_path="availability")

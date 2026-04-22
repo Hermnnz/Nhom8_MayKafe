@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_auth_dialog_surface"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="26dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="22dp">
+
+    <FrameLayout
+        android:layout_width="62dp"
+        android:layout_height="62dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_auth_dialog_icon_chip">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:contentDescription="Khong the xoa mon"
+            android:src="@drawable/ic_stat_cancelled"
+            app:tint="@color/dialog_confirm_red" />
+    </FrameLayout>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/text_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:textColor="@color/coffee_950"
+        android:textSize="19sp"
+        android:textStyle="bold" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/text_dialog_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/coffee_500"
+        android:textSize="14sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_acknowledge"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_auth_dialog_confirm"
+        android:gravity="center"
+        android:maxLines="1"
+        android:minHeight="50dp"
+        android:paddingLeft="12dp"
+        android:paddingTop="0dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="0dp"
+        android:singleLine="true"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+</LinearLayout>

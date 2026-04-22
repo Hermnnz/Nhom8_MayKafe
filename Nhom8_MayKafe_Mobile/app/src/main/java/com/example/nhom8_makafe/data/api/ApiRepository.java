@@ -29,6 +29,7 @@ import com.example.nhom8_makafe.model.User;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -89,7 +90,7 @@ public class ApiRepository {
 
             @Override
             public void onError(String message) {
-                callback.onError(normalizeLoginErrorMessage(message));
+                callback.onError(resolveLoginErrorMessage(message));
             }
         });
     }
@@ -930,14 +931,42 @@ public class ApiRepository {
         return fallback.isEmpty() ? null : fallback;
     }
 
+    private String resolveLoginErrorMessage(String message) {
+        if (message == null) {
+            return null;
+        }
+        String normalized = normalizeForComparison(message);
+        if (normalized.contains("tai khoan khong ton tai")) {
+            return "T\u00e0i kho\u1ea3n kh\u00f4ng t\u1ed3n t\u1ea1i";
+        }
+        if (normalized.contains("tai khoan hoac mat khau khong dung")
+                || normalized.contains("ten dang nhap hoac mat khau khong dung")
+                || normalized.contains("sai thong tin dang nhap")
+                || normalized.contains("invalid credentials")
+                || normalized.contains("unauthorized")) {
+            return "T\u00e0i kho\u1ea3n ho\u1eb7c m\u1eadt kh\u1ea9u kh\u00f4ng \u0111\u00fang";
+        }
+        return message;
+    }
+
+    private String normalizeForComparison(String value) {
+        String normalized = Normalizer.normalize(value, Normalizer.Form.NFD);
+        normalized = normalized.replaceAll("\\p{M}+", "");
+        normalized = normalized.replace('\u0111', 'd').replace('\u0110', 'D');
+        return normalized.trim().toLowerCase(Locale.ROOT);
+    }
+
     private String normalizeLoginErrorMessage(String message) {
         if (message == null) {
             return null;
         }
-        String normalized = message.trim().toLowerCase(Locale.ROOT);
-        if (normalized.contains("ten dang nhap hoac mat khau khong dung")
+        String normalized = normalizeForComparison(message);
+        if (normalized.contains("tai khoan khong ton tai")) {
+            return "T\u00e0i kho\u1ea3n kh\u00f4ng t\u1ed3n t\u1ea1i";
+        }
+        if (normalized.contains("tai khoan hoac mat khau khong dung")
+                || normalized.contains("ten dang nhap hoac mat khau khong dung")
                 || normalized.contains("sai thong tin dang nhap")
-                || normalized.contains("validation error")
                 || normalized.contains("invalid credentials")
                 || normalized.contains("unauthorized")) {
             return "Sai thông tin đăng nhập";

@@ -79,15 +79,49 @@ public class MenuDeleteConfirmOverlayFragment extends OverlayFragment {
                         if (!isAdded()) {
                             return;
                         }
+                        if (shouldShowDeleteBlockedDialog(message)) {
+                            showDeleteBlockedDialog(message);
+                            return;
+                        }
                         Toast.makeText(
                                 requireContext(),
                                 message == null || message.trim().isEmpty()
-                                        ? "Kh\u00f4ng th\u1ec3 x\u00f3a m\u00f3n n\u00e0y."
+                                        ? "Hi\u1ec7n kh\u00f4ng th\u1ec3 x\u00f3a m\u00f3n n\u00e0y"
                                         : message,
                                 Toast.LENGTH_SHORT
                         ).show();
                     }
                 }));
+    }
+
+    private boolean shouldShowDeleteBlockedDialog(@Nullable String message) {
+        if (message == null) {
+            return false;
+        }
+        return "Hi\u1ec7n kh\u00f4ng th\u1ec3 x\u00f3a m\u00f3n n\u00e0y".equals(message.trim());
+    }
+
+    private void showDeleteBlockedDialog(@Nullable String message) {
+        if (!isAdded()) {
+            return;
+        }
+        String dialogMessage = message == null || message.trim().isEmpty()
+                ? "Hi\u1ec7n kh\u00f4ng th\u1ec3 x\u00f3a m\u00f3n n\u00e0y"
+                : message.trim();
+        androidx.fragment.app.FragmentManager fragmentManager = getParentFragmentManager();
+        dismissAllowingStateLoss();
+        if (binding == null) {
+            MenuDeleteBlockedOverlayFragment.newInstance(dialogMessage)
+                    .show(fragmentManager, MenuDeleteBlockedOverlayFragment.TAG);
+            return;
+        }
+        binding.getRoot().post(() -> {
+            if (fragmentManager.findFragmentByTag(MenuDeleteBlockedOverlayFragment.TAG) != null) {
+                return;
+            }
+            MenuDeleteBlockedOverlayFragment.newInstance(dialogMessage)
+                    .show(fragmentManager, MenuDeleteBlockedOverlayFragment.TAG);
+        });
     }
 
     private void notifyMenuChanged() {

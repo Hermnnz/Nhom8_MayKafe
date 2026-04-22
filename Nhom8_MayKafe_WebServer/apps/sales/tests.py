@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db import connection
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -17,18 +16,13 @@ class OrderDateBehaviorTests(TestCase):
         self.user = get_user_model().objects.create_user(username="tester", password="secret123")
         self.client.force_authenticate(self.user)
         self.category = Category.objects.create(name="Ca phe")
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                INSERT INTO maycafe_mon
-                    (TenMon, DonGia, HinhAnh, TrangThai, ID_DanhMuc_id, AssetLabel, AccentColorHex)
-                VALUES
-                    (%s, %s, %s, %s, %s, %s, %s)
-                """,
-                ["Ca phe sua", 30000, "", True, self.category.id, "CP", "#6B3F2A"],
-            )
-            product_id = cursor.lastrowid
-        self.product = Product.objects.get(pk=product_id)
+        self.product = Product.objects.create(
+            name="Ca phe sua",
+            price=30000,
+            image="",
+            available=True,
+            category=self.category,
+        )
 
     def create_items_payload(self):
         return [
